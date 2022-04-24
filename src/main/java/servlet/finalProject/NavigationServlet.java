@@ -81,7 +81,7 @@ public class NavigationServlet extends HttpServlet {
 			ResultSet sqlRes = st.executeQuery(
 				"SELECT * FROM mail "
 				+ "WHERE receiver='" + email + "'"
-				+ "ORDER BY timestamp DESC"
+				+ "ORDER BY time DESC"
 			);
 			
 			StringBuilder output = new StringBuilder();
@@ -90,7 +90,7 @@ public class NavigationServlet extends HttpServlet {
 			while (sqlRes.next()) {
 				out.println(sqlRes.getString(5));
 				output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-				output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getTime("timestamp"));
+				output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
 				output.append("</span>");
 				output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
 				output.append("<br>" + sqlRes.getString(4));
@@ -126,7 +126,7 @@ public class NavigationServlet extends HttpServlet {
 			ResultSet sqlRes = st.executeQuery(
 				"SELECT * FROM mail "
 				+ "WHERE sender='" + email + "'"
-				+ "ORDER BY timestamp DESC"
+				+ "ORDER BY time DESC"
 			);
 			
 			StringBuilder output = new StringBuilder();

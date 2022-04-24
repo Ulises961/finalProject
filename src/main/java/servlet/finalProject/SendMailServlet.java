@@ -66,12 +66,12 @@ public class SendMailServlet extends HttpServlet {
 		String receiver = request.getParameter("receiver").replace("'", "''");;
 		String subject = request.getParameter("subject").replace("'", "''");;
 		String body = request.getParameter("body").replace("'", "''");;
-		String timestamp = LDT_FORMATTER.format(LocalTime.now());
+		String time = LDT_FORMATTER.format(LocalTime.now());
 		
 		try (Statement st = conn.createStatement()) {
 			st.execute(
-				"INSERT INTO mail ( sender, receiver, subject, body, timestamp[2] ) "
-				+ "VALUES ( '" + sender + "', '" + receiver + "', '" + subject + "', '" + body + "', '" + timestamp + "' )"
+				"INSERT INTO mail ( sender, receiver, subject, body, time[2] ) "
+				+ "VALUES ( '" + sender + "', '" + receiver + "', '" + subject + "', '" + body + "', '" + time + "' )"
 			);
 			
 		} catch (SQLException e) {
