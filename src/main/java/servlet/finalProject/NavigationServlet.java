@@ -62,8 +62,8 @@ public class NavigationServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
 		
-		String email = request.getParameter("email").replace("'", "''");;
-		String pwd = request.getParameter("password").replace("'", "''");;
+		String email = request.getParameter("email");
+		String pwd = request.getParameter("password");
 				
 		if (request.getParameter("newMail") != null)
 			request.setAttribute("content", getHtmlForNewMail(email, pwd));

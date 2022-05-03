@@ -58,10 +58,10 @@ public class RegisterServlet extends HttpServlet {
 		response.setContentType("text/html");
 		
 		// The replacement escapes apostrophe special character in order to store it in SQL
-		String name = request.getParameter("name").replace("'", "''");
-		String surname = request.getParameter("surname").replace("'", "''");;
-		String email = request.getParameter("email").replace("'", "''");;
-		String pwd = request.getParameter("password").replace("'", "''");;
+		String name = request.getParameter("name");
+		String surname = request.getParameter("surname");
+		String email = request.getParameter("email");
+		String pwd = request.getParameter("password");
 		
 		try (Statement st = conn.createStatement()) {
 			ResultSet sqlRes = st.executeQuery(

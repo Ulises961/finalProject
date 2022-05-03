@@ -62,10 +62,10 @@ public class SendMailServlet extends HttpServlet {
 		final DateTimeFormatter LDT_FORMATTER
 				= DateTimeFormatter.ofPattern(LDT_PATTERN);
 
-		String sender = request.getParameter("email").replace("'", "''");;
-		String receiver = request.getParameter("receiver").replace("'", "''");;
-		String subject = request.getParameter("subject").replace("'", "''");;
-		String body = request.getParameter("body").replace("'", "''");;
+		String sender = request.getParameter("email");
+		String receiver = request.getParameter("receiver");
+		String subject = request.getParameter("subject");
+		String body = request.getParameter("body");
 		String time = LDT_FORMATTER.format(LocalTime.now());
 		
 		try (Statement st = conn.createStatement()) {
