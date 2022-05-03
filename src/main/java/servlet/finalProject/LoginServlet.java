@@ -14,6 +14,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 /**
  * Servlet implementation class HelloWorldServlet
  */
@@ -60,24 +62,29 @@ public class LoginServlet extends HttpServlet {
 		
 		System.out.println("The email is: " + "SELECT * "
 				+ "FROM users "
-				+ "WHERE email='" + email + "' "
-					+ "AND password='" + pwd + "'");
+				+ "WHERE email='" + email + "' ");
 		
 		try (Statement st = conn.createStatement()) {
 			ResultSet sqlRes = st.executeQuery(
 				"SELECT * "
 				+ "FROM users "
 				+ "WHERE email='" + email + "' "
-					+ "AND password='" + pwd + "'"
 			);
 			
 			if (sqlRes.next()) {
-				request.setAttribute("email", sqlRes.getString(3));
-				request.setAttribute("password", sqlRes.getString(4));
 				
-				System.out.println("Login succeeded!");
-				request.setAttribute("content", "");
-				request.getRequestDispatcher("home.jsp").forward(request, response);
+				if(BCrypt.checkpw(pwd, sqlRes.getString(4))) {
+					request.setAttribute("email", sqlRes.getString(3));
+					request.setAttribute("password", sqlRes.getString(4));
+					
+					System.out.println("Login succeeded!");
+					request.setAttribute("content", "");
+					request.getRequestDispatcher("home.jsp").forward(request, response);
+					
+				}else {
+					System.out.println("Login failed!");
+					request.getRequestDispatcher("login.html").forward(request, response);
+				}
 				
 				
 			} else {
