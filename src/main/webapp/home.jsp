@@ -22,6 +22,10 @@
 	</nav>
 	
 	<div class="grid-container">
+		<form class="btn-group" action="SearchServlet" method="get">
+			<input type="text" name="searchParam"/>
+			<input type="submit" name="search"/>
+		</form>
 		<form class="btn-group" action="NavigationServlet" method="post">
 			<input type="hidden" name="email" value="<%= request.getAttribute("email") %>">
 			<input type="hidden" name="password" value="<%= request.getAttribute("password") %>">

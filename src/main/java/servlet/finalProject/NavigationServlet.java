@@ -23,8 +23,6 @@ import static java.lang.System.out;
 public class NavigationServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-
-
 	private static final String USER = "postgres";
 	private static final String PWD = "postgres";
 	private static final String DRIVER_CLASS = "org.postgresql.Driver";
@@ -62,6 +60,7 @@ public class NavigationServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
 		
+		String searchParam = request.getParameter("searchParam");
 		String email = request.getParameter("email");
 		String pwd = request.getParameter("password");
 				
@@ -71,6 +70,8 @@ public class NavigationServlet extends HttpServlet {
 			request.setAttribute("content", getHtmlForInbox(email));
 		else if (request.getParameter("sent") != null)
 			request.setAttribute("content", getHtmlForSent(email));
+		else if (request.getParameter("search") != null)
+			request.setAttribute("content", getHtmlForSearchResults(email, searchParam));
 		
 		request.setAttribute("email", email);
 		request.getRequestDispatcher("home.jsp").forward(request, response);
@@ -82,6 +83,43 @@ public class NavigationServlet extends HttpServlet {
 				"SELECT * FROM mail "
 				+ "WHERE receiver='" + email + "'"
 				+ "ORDER BY time DESC"
+			);
+			
+			StringBuilder output = new StringBuilder();
+			output.append("<div>\r\n");
+			
+			while (sqlRes.next()) {
+				out.println(sqlRes.getString(5));
+				output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
+				output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
+				output.append("</span>");
+				output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
+				output.append("<br>" + sqlRes.getString(4));
+				output.append("</div>\r\n");
+				
+				output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
+			}
+			
+			output.append("</div>");
+			
+			return output.toString();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "ERROR IN FETCHING INBOX MAILS!";
+		}
+	}
+	
+	private String getHtmlForSearchResults(String email, String searchParam) {
+		try (Statement st = conn.createStatement()) {
+			ResultSet sqlRes = st.executeQuery(
+				"SELECT * FROM mail "
+				+ "WHERE receiver='" + email + "' "
+				+ "AND ( "
+					+	"subject='%" + searchParam + "%' "
+					+	"OR "
+					+	"receiver='%" + searchParam + "%'"
+				+ ") ORDER BY time DESC"
 			);
 			
 			StringBuilder output = new StringBuilder();
