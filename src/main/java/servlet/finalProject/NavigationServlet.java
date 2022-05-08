@@ -139,8 +139,8 @@ public class NavigationServlet extends HttpServlet {
 			
 			StringBuilder output = new StringBuilder();
 			
-			output.append("<div>\r\n Search results for: " + searchParam + "</div>");
 			output.append("<div>\r\n");
+			output.append("<div>Search results for: " + searchParam + "</div><br>");
 			
 			while (sqlRes.next()) {
 				out.println(sqlRes.getString(5));

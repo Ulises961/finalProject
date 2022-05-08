@@ -24,6 +24,8 @@
 	<div class="grid-container">
 		<div>
 			<form action="NavigationServlet" method="post">
+				<input type="hidden" name="email" value="<%= request.getAttribute("email") %>">
+				<input type="hidden" name="password" value="<%= request.getAttribute("password") %>">
 				<input type="text" name="searchParam" size="12"/>
 				<input type="submit" id="search" style="margin-left:25%" name="search" value="search"/>
 			</form>
