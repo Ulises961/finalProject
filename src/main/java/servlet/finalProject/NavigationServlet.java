@@ -112,17 +112,34 @@ public class NavigationServlet extends HttpServlet {
 	
 	private String getHtmlForSearchResults(String email, String searchParam) {
 		try (Statement st = conn.createStatement()) {
+			
+			System.out.println("SELECT * FROM mail "
+				+ "WHERE ( "
+					+	"receiver='" + email + "' "
+					+	"OR "
+					+	"sender='" + email + "' "
+				+ ") AND ( "
+					+	"subject LIKE '%" + searchParam + "%' "
+					+	"OR "
+					+	"receiver LIKE '%" + searchParam + "%' "
+				+ ") ORDER BY time DESC");
+			
 			ResultSet sqlRes = st.executeQuery(
 				"SELECT * FROM mail "
-				+ "WHERE receiver='" + email + "' "
-				+ "AND ( "
-					+	"subject='%" + searchParam + "%' "
+				+ "WHERE ( "
+					+	"receiver='" + email + "' "
 					+	"OR "
-					+	"receiver='%" + searchParam + "%'"
+					+	"sender='" + email + "' "
+				+ ") AND ( "
+					+	"subject LIKE '%" + searchParam + "%' "
+					+	"OR "
+					+	"receiver LIKE '%" + searchParam + "%' "
 				+ ") ORDER BY time DESC"
 			);
 			
 			StringBuilder output = new StringBuilder();
+			
+			output.append("<div>\r\n Search results for: " + searchParam + "</div>");
 			output.append("<div>\r\n");
 			
 			while (sqlRes.next()) {
