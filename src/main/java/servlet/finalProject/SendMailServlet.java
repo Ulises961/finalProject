@@ -11,7 +11,6 @@ import java.sql.*;
 import java.time.LocalTime;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -35,7 +34,6 @@ public class SendMailServlet extends HttpServlet {
      */
     public SendMailServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
     
     public void init() throws ServletException {
