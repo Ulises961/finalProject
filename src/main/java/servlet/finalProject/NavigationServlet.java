@@ -31,39 +31,41 @@ public class NavigationServlet extends HttpServlet {
 	private static Connection conn;
 
 	/**
-     * @see HttpServlet#HttpServlet()
-     */
-    public NavigationServlet() {
-        super();
-    }
-    
-    public void init() throws ServletException {
-    	try {
+	 * @see HttpServlet#HttpServlet()
+	 */
+	public NavigationServlet() {
+		super();
+	}
+
+	public void init() throws ServletException {
+		try {
 			Class.forName(DRIVER_CLASS);
-			
-		    Properties connectionProps = new Properties();
-		    connectionProps.put("user", USER);
-		    connectionProps.put("password", PWD);
-	
-	        conn = DriverManager.getConnection(DB_URL, connectionProps);
-		    
-		    //System.out.println("User \"" + USER + "\" connected to database.");
-    	
-    	} catch (ClassNotFoundException | SQLException e) {
+
+			Properties connectionProps = new Properties();
+			connectionProps.put("user", USER);
+			connectionProps.put("password", PWD);
+
+			conn = DriverManager.getConnection(DB_URL, connectionProps);
+
+			// System.out.println("User \"" + USER + "\" connected to database.");
+
+		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		}
-    }
+	}
 
 	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		response.setContentType("text/html");
-		
+
 		String searchParam = request.getParameter("searchParam");
 		String email = request.getParameter("email");
 		String pwd = request.getParameter("password");
-				
+
 		if (request.getParameter("newMail") != null)
 			request.setAttribute("content", getHtmlForNewMail(email, pwd));
 		else if (request.getParameter("inbox") != null)
@@ -72,7 +74,7 @@ public class NavigationServlet extends HttpServlet {
 			request.setAttribute("content", getHtmlForSent(email));
 		else if (request.getParameter("search") != null)
 			request.setAttribute("content", getHtmlForSearchResults(email, searchParam));
-		
+
 		request.setAttribute("email", email);
 		request.getRequestDispatcher("home.jsp").forward(request, response);
 	}
@@ -80,14 +82,13 @@ public class NavigationServlet extends HttpServlet {
 	private String getHtmlForInbox(String email) {
 		try (Statement st = conn.createStatement()) {
 			ResultSet sqlRes = st.executeQuery(
-				"SELECT * FROM mail "
-				+ "WHERE receiver='" + email + "'"
-				+ "ORDER BY time DESC"
-			);
-			
+					"SELECT * FROM mail "
+							+ "WHERE receiver='" + email + "'"
+							+ "ORDER BY time DESC");
+
 			StringBuilder output = new StringBuilder();
 			output.append("<div>\r\n");
-			
+
 			while (sqlRes.next()) {
 				out.println(sqlRes.getString(5));
 				output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
@@ -96,52 +97,51 @@ public class NavigationServlet extends HttpServlet {
 				output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
 				output.append("<br>" + sqlRes.getString(4));
 				output.append("</div>\r\n");
-				
+
 				output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
 			}
-			
+
 			output.append("</div>");
-			
+
 			return output.toString();
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "ERROR IN FETCHING INBOX MAILS!";
 		}
 	}
-	
+
 	private String getHtmlForSearchResults(String email, String searchParam) {
 		try (Statement st = conn.createStatement()) {
-			
+
 			System.out.println("SELECT * FROM mail "
-				+ "WHERE ( "
-					+	"receiver='" + email + "' "
-					+	"OR "
-					+	"sender='" + email + "' "
-				+ ") AND ( "
-					+	"subject LIKE '%" + searchParam + "%' "
-					+	"OR "
-					+	"receiver LIKE '%" + searchParam + "%' "
-				+ ") ORDER BY time DESC");
-			
+					+ "WHERE ( "
+					+ "receiver='" + email + "' "
+					+ "OR "
+					+ "sender='" + email + "' "
+					+ ") AND ( "
+					+ "subject LIKE '%" + searchParam + "%' "
+					+ "OR "
+					+ "receiver LIKE '%" + searchParam + "%' "
+					+ ") ORDER BY time DESC");
+
 			ResultSet sqlRes = st.executeQuery(
-				"SELECT * FROM mail "
-				+ "WHERE ( "
-					+	"receiver='" + email + "' "
-					+	"OR "
-					+	"sender='" + email + "' "
-				+ ") AND ( "
-					+	"subject LIKE '%" + searchParam + "%' "
-					+	"OR "
-					+	"receiver LIKE '%" + searchParam + "%' "
-				+ ") ORDER BY time DESC"
-			);
-			
+					"SELECT * FROM mail "
+							+ "WHERE ( "
+							+ "receiver='" + email + "' "
+							+ "OR "
+							+ "sender='" + email + "' "
+							+ ") AND ( "
+							+ "subject LIKE '%" + searchParam + "%' "
+							+ "OR "
+							+ "receiver LIKE '%" + searchParam + "%' "
+							+ ") ORDER BY time DESC");
+
 			StringBuilder output = new StringBuilder();
-			
+
 			output.append("<div>\r\n");
 			output.append("<div>Search results for: " + searchParam + "</div><br>");
-			
+
 			while (sqlRes.next()) {
 				out.println(sqlRes.getString(5));
 				output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
@@ -150,43 +150,41 @@ public class NavigationServlet extends HttpServlet {
 				output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
 				output.append("<br>" + sqlRes.getString(4));
 				output.append("</div>\r\n");
-				
+
 				output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
 			}
-			
+
 			output.append("</div>");
-			
+
 			return output.toString();
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "ERROR IN FETCHING INBOX MAILS!";
 		}
 	}
-	
+
 	private String getHtmlForNewMail(String email, String pwd) {
-		return 
-			"<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
-			+ "		<input type=\"hidden\" name=\"email\" value=\""+email+"\">\r\n"
-			+ "		<input type=\"hidden\" name=\"password\" value=\""+pwd+"\">\r\n"
-			+ "		<input class=\"single-row-input\" type=\"email\" name=\"receiver\" placeholder=\"Receiver\" required>\r\n"
-			+ "		<input class=\"single-row-input\" type=\"text\"  name=\"subject\" placeholder=\"Subject\" required>\r\n"
-			+ "		<textarea class=\"textarea-input\" name=\"body\" placeholder=\"Body\" wrap=\"hard\" required></textarea>\r\n"
-			+ "		<input type=\"submit\" name=\"sent\" value=\"Send\">\r\n"
-			+ "	</form>";
+		return "<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
+				+ "		<input type=\"hidden\" name=\"email\" value=\"" + email + "\">\r\n"
+				+ "		<input type=\"hidden\" name=\"password\" value=\"" + pwd + "\">\r\n"
+				+ "		<input class=\"single-row-input\" type=\"email\" name=\"receiver\" placeholder=\"Receiver\" required>\r\n"
+				+ "		<input class=\"single-row-input\" type=\"text\"  name=\"subject\" placeholder=\"Subject\" required>\r\n"
+				+ "		<textarea class=\"textarea-input\" name=\"body\" placeholder=\"Body\" wrap=\"hard\" required></textarea>\r\n"
+				+ "		<input type=\"submit\" name=\"sent\" value=\"Send\">\r\n"
+				+ "	</form>";
 	}
-	
+
 	private String getHtmlForSent(String email) {
 		try (Statement st = conn.createStatement()) {
 			ResultSet sqlRes = st.executeQuery(
-				"SELECT * FROM mail "
-				+ "WHERE sender='" + email + "'"
-				+ "ORDER BY time DESC"
-			);
-			
+					"SELECT * FROM mail "
+							+ "WHERE sender='" + email + "'"
+							+ "ORDER BY time DESC");
+
 			StringBuilder output = new StringBuilder();
 			output.append("<div>\r\n");
-			
+
 			while (sqlRes.next()) {
 				output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
 				output.append("TO:&emsp;" + sqlRes.getString(2) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
@@ -194,14 +192,14 @@ public class NavigationServlet extends HttpServlet {
 				output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
 				output.append("<br>" + sqlRes.getString(4));
 				output.append("</div>\r\n");
-				
+
 				output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
 			}
-			
+
 			output.append("</div>");
-			
+
 			return output.toString();
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return "ERROR IN FETCHING INBOX MAILS!";
