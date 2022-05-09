@@ -29,26 +29,11 @@
         <input type="submit" name="inbox" value="Inbox">
         <input type="submit" name="sent" value="Sent">
     </form>
+    <a href="DownloadServlet">Download</a>
 
     <%= request.getAttribute("content") != null ? request.getAttribute("content") : "" %>
 </div>
 
-<div class="modal-content">
-    <div class="modal-header">
-        <span class="close">&times;</span>
-        <h2>Modal Header</h2>
-    </div>
-    <div class="modal-body">
-        <% if (request.getAttribute("privKey") != null) { %>
-        <p><% request.getAttribute("privKey"); %></p>
-        <script>alert(<% request.getAttribute("privKey"); %>);
-        console.log(<% request.getAttribute("privKey"); %>)</script>
-        <% } %>
-    </div>
-    <div class="modal-footer">
-        <h3>Modal Footer</h3>
-    </div>
-</div>
 </body>
 </html>
 
