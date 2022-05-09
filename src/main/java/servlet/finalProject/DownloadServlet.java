@@ -5,6 +5,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.RSA;
+import utils.RSAKeys;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,7 +20,9 @@ public class DownloadServlet extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         String filename = "home.jsp";
-        String privateKey = "test file";
+        RSA rsa = new RSA();
+        RSAKeys keys = rsa.generateKeys();
+        String privateKey = keys.getD().toString();
         response.setContentType("APPLICATION/OCTET-STREAM");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 
