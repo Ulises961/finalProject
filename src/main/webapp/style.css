@@ -2,15 +2,15 @@
 
 /* Navigation bar */
 .navbar {
-	color:#fff!important;
-	background-color:#000!important;
-  	overflow: hidden; /* Hide overflow */
+    color: #fff !important;
+    background-color: #000 !important;
+    overflow: hidden; /* Hide overflow */
 }
 
 /* Navigation bar links */
 .navbar a {
-  	display: block; /* Change the display to block, for responsive reasons (see below) */
-  	color: white; /* White text color */
+    display: block; /* Change the display to block, for responsive reasons (see below) */
+    color: white; /* White text color */
 }
 
 /* Navigation bar images */
@@ -20,65 +20,99 @@
 }
 
 .box {
-   	display: flex;
-   	align-items:center;
+    display: flex;
+    align-items: center;
 }
 
 .btn-group {
-	border-right: 5px solid;
+    border-right: 5px solid;
 }
 
 .btn-group input {
-  background-color: #04AA6D; /* Green background */
-  border: 1px solid green; /* Green border */
-  color: white; /* White text */
-  padding: 10px 24px; /* Some padding */
-  cursor: pointer; /* Pointer/hand icon */
-  width: 100%;
-  display: block; /* Make the buttons appear below each other */
+    background-color: #04AA6D; /* Green background */
+    border: 1px solid green; /* Green border */
+    color: white; /* White text */
+    padding: 10px 24px; /* Some padding */
+    cursor: pointer; /* Pointer/hand icon */
+    width: 100%;
+    display: block; /* Make the buttons appear below each other */
 }
 
 .single-row-input {
-  border: 1px solid green; /* Green border */
-  padding: 10px 24px; /* Some padding */
-  cursor: pointer; /* Pointer/hand icon */
-  width: 100%;
-  display: block; /* Make the buttons appear below each other */
+    border: 1px solid green; /* Green border */
+    padding: 10px 24px; /* Some padding */
+    cursor: pointer; /* Pointer/hand icon */
+    width: 100%;
+    display: block; /* Make the buttons appear below each other */
 }
 
 .textarea-input {
-	resize: none;
-  	border: 1px solid green; /* Green border */
-  	padding: 10px 24px; /* Some padding */
-  	cursor: pointer; /* Pointer/hand icon */
-  	width: 100%;
-  	height: 100%;
-  	display: block; /* Make the buttons appear below each other */
+    resize: none;
+    border: 1px solid green; /* Green border */
+    padding: 10px 24px; /* Some padding */
+    cursor: pointer; /* Pointer/hand icon */
+    width: 100%;
+    height: 100%;
+    display: block; /* Make the buttons appear below each other */
 }
 
 .btn-group button:not(:last-child) {
-  border-bottom: none; /* Prevent double borders */
+    border-bottom: none; /* Prevent double borders */
 }
 
 /* Add a background color on hover */
 .btn-group button:hover {
-  background-color: #3e8e41;
+    background-color: #3e8e41;
 }
 
 .grid-container {
-  display: grid;
-  grid-template-columns: 10% 90%;
-  grid-template-rows: 100%;
+    display: grid;
+    grid-template-columns: 10% 90%;
+    grid-template-rows: 100%;
 }
 
 .form-resize {
-	width: 95%;
-	height: 100%;
+    width: 95%;
+    height: 100%;
 }
 
 
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0); /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
 
- 
+/* Modal Content */
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
 
+/* The Close Button */
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
 
 
