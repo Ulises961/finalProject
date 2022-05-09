@@ -2,6 +2,7 @@ package utils;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Random;
 
 public class RSA {
 
@@ -13,12 +14,38 @@ public class RSA {
         System.out.println(rsa.decrypt(encryptedMessage, keys.d, keys.n));
     }
 
+    private static int generateRandomPrime() {
+        int num = 0;
+        Random rand = new Random(); // generate a random number
+        num = rand.nextInt(1000) + 1;
+
+        while (!isPrime(num)) {
+            num = rand.nextInt(1000) + 1;
+        }
+        return num;
+    }
+
+    /**
+     * Checks to see if the requested value is prime.
+     */
+    private static boolean isPrime(int inputNum) {
+        if (inputNum <= 3 || inputNum % 2 == 0)
+            return inputNum == 2 || inputNum == 3; // this returns false if number is <=1 & true if number = 2 or 3
+        int divisor = 3;
+        while ((divisor <= Math.sqrt(inputNum)) && (inputNum % divisor != 0))
+            divisor += 2; // iterates through all possible divisors
+        return inputNum % divisor != 0; // returns true/false
+    }
+
     public RSAKeys generateKeys() {
 
         // generate two random prime numbers p and q.
 
-        int p = 17;// generateRandomPrime();
+    /*    int p = 17;// generateRandomPrime();
         int q = 23;// generateRandomPrime();
+*/
+        int p = generateRandomPrime();
+        int q = generateRandomPrime();
 
         // calculate n = p*q
         int n = p * q;
@@ -39,12 +66,12 @@ public class RSA {
         // Extended Euclidean Algorithm Tip:
 
         int[] ps = {0, 1};
-		int quotient = 0;
-		int dividend = phi;
-		int divisor = e;
-		int remainder = phi;
-		int pi = 0;
-		int p0 = ps[0];
+        int quotient = 0;
+        int dividend = phi;
+        int divisor = e;
+        int remainder = phi;
+        int pi = 0;
+        int p0 = ps[0];
         int p1 = ps[1];
         int pN = 0;
         while (remainder > 0) {
@@ -68,9 +95,9 @@ public class RSA {
 
         }
         int d = p0;
-        System.out.println(e);
-        System.out.println(d);
-        System.out.println(n);
+        System.out.println("Public key 'e' = " + e);
+        System.out.println("Private key 'd' = " + d);
+        System.out.println("'n= p*q' = " + n);
         BigInteger bigE = BigInteger.valueOf(e);
         BigInteger bigD = BigInteger.valueOf(d);
         BigInteger bigN = BigInteger.valueOf(n);
