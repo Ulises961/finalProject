@@ -55,33 +55,28 @@ public class LoginServlet extends HttpServlet {
 
         String email = request.getParameter("email");
         String pwd = request.getParameter("password");
+       
 
-        System.out.println("The email is: " + "SELECT * "
-                + "FROM users "
-                + "WHERE email='" + email + "' ");
+        try{
+        	String getUserInfo = "SELECT password, email FROM users WHERE email=?";
+        	PreparedStatement pstm = conn.prepareStatement(getUserInfo);
+            pstm.setString(1, email);
+           
+            ResultSet result = pstm.executeQuery();
+ 
 
-        try (Statement st = conn.createStatement()) {
-            ResultSet sqlRes = st.executeQuery(
-                    "SELECT * "
-                            + "FROM users "
-                            + "WHERE email='" + email + "' "
-            );
-
-            if (sqlRes.next()) {
-
-                if (BCrypt.checkpw(pwd, sqlRes.getString(4))) {
-                    request.setAttribute("email", sqlRes.getString(3));
-                    request.setAttribute("password", sqlRes.getString(4));
-
+            if (result.next()) {
+                if (BCrypt.checkpw(pwd, result.getString("password"))) {
                     System.out.println("Login succeeded!");
+                    
                     request.setAttribute("content", "");
+                    request.setAttribute("email", result.getString("email"));
                     request.getRequestDispatcher("home.jsp").forward(request, response);
 
                 } else {
                     System.out.println("Login failed!");
                     request.getRequestDispatcher("login.html").forward(request, response);
                 }
-
 
             } else {
                 System.out.println("Login failed!");
