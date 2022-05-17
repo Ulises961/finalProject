@@ -56,48 +56,76 @@ public class RegisterServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+    	
         response.setContentType("text/html");
 
-        // The replacement escapes apostrophe special character in order to store it in
-        // SQL
         String name = request.getParameter("name");
         String surname = request.getParameter("surname");
         String email = request.getParameter("email");
         String pwd = request.getParameter("password");
-
+        
+        //GENERATE HASHED PASSWORD
         String salt = BCrypt.gensalt(BCryptWorkload);
         String pwdhash = BCrypt.hashpw(pwd, salt);
+        
+        //GENERATE PUBLICK AND PRIVATE KEYS
+        //THERE IS MOST DEFINITELY AN ERROR EITHER HERE OR IN RSA.java
+        //IN RSA.java privKey AND pubKey ARE INVERTED
         RSA rsa = new RSA();
         RSAKeys keys = rsa.generateKeys();
         BigInteger privKey = keys.getE();
         BigInteger pubKey = keys.getD();
         BigInteger n = keys.getN();
+        
+        try{
+        	String isEmailRegistered = "SELECT * FROM users WHERE email=?";
+            PreparedStatement pstm = conn.prepareStatement(isEmailRegistered);
+            pstm.setString(1, email);
+            
+            ResultSet result = pstm.executeQuery();
 
-        try (Statement st = conn.createStatement()) {
-            ResultSet sqlRes = st.executeQuery(
-                    "SELECT * "
-                            + "FROM users "
-                            + "WHERE email='" + email + "'");
-
-            if (sqlRes.next()) {
+            if (result.next()) {
                 System.out.println("Email already registered!");
                 request.getRequestDispatcher("register.html").forward(request, response);
 
             } else {
-                st.execute(
-                        "INSERT INTO users ( name, surname, email, password ) "
-                                + "VALUES ( '" + name + "', '" + surname + "', '" + email + "', '" + pwdhash + "' ); " +
-                                "INSERT INTO public_keys(pub,utente,n) VALUES (" + pubKey + ",'" + email + "'," + n
-                                + ")");
-
+            	String registerUser = "INSERT INTO users ( name, surname, email, password ) VALUES (?, ?, ?, ?); ";
+            	pstm = conn.prepareStatement(registerUser);
+            	pstm.setString(1, name);
+            	pstm.setString(2, surname);
+            	pstm.setString(3, email);
+            	pstm.setString(4, pwdhash);
+            	
+            	int numUpdates = pstm.executeUpdate();
+            	
+            	if(numUpdates == 1)
+            		System.out.println("Registration succeeded!");
+            	else
+            		System.out.println("Error during registration!");
+            	
+            	String setPublicKey = "INSERT INTO public_keys(pub, utente, n) VALUES (?, ?, ?)";
+            	pstm = conn.prepareStatement(setPublicKey);
+            	pstm.setLong(1, Long.parseLong(pubKey.toString()));
+            	pstm.setLong(3, Long.parseLong(n.toString()));
+            	pstm.setString(2, email);
+            	
+            	numUpdates = pstm.executeUpdate();
+            	
+            	if(numUpdates == 1)
+            		System.out.println("Public keys set!");
+            	else
+            		System.out.println("Could not set public keys!");
+            	
+            	System.out.println("User private key " + privKey);
+                System.out.println("User public key " + pubKey);
+            	
                 request.setAttribute("email", email);
                 request.setAttribute("password", pwdhash);
+                
+                //IDK if this has any use so I just commented it
+                //request.setAttribute("privKey", privKey);
 
-                request.setAttribute("privKey", privKey);
-                System.out.println("Registration succeeded!");
-                System.out.println("User private key " + privKey);
-                System.out.println("User public key " + pubKey);
-
+                //GENERATE PRIVATE KEY FILE
                 response.setContentType("text/html");
                 PrintWriter out = response.getWriter();
                 String filename = "privateKey.txt";
@@ -106,7 +134,8 @@ public class RegisterServlet extends HttpServlet {
                 out.write(privKey.toString());
                 out.close();
 
-                request.getRequestDispatcher("home.jsp").forward(request, response);
+                //request.getRequestDispatcher("home.jsp").forward(request, response);
+                //request.getRequestDispatcher("home.jsp").forward(request, response);
             }
 
         } catch (SQLException e) {
