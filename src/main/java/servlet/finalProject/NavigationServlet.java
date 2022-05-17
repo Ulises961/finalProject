@@ -111,7 +111,7 @@ public class NavigationServlet extends HttpServlet {
         try (Statement st = conn.createStatement()) {
 
         	String searchForMail = "SELECT * FROM mail WHERE "
-        						   + "( receiver=? OR sender=? ) "
+        						   + "( receiver=? OR sender=? ) AND "
         						   + "( subject LIKE ? OR receiver LIKE ?) "
         						   + "ORDER BY time DESC";
         	
