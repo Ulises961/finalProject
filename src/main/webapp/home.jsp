@@ -8,17 +8,10 @@ pageEncoding="ISO-8859-1" %>
     <link rel="stylesheet" href="style.css" type="text/css" />
 
     <title>Home page</title>
-<<<<<<< HEAD
-</head>
-<body>
-<nav class="navbar">
-    <div class="box">
-=======
   </head>
   <body>
     <nav class="navbar">
       <div class="box">
->>>>>>> 39f1c16c17519686415143851446c56ad108d065
         <div>
           <img src="images/email_icon.jpg" align="left" />
           <p>
