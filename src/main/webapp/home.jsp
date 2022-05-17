@@ -46,7 +46,6 @@ pageEncoding="ISO-8859-1" %>
           <input type="submit" name="inbox" value="Inbox" />
           <input type="submit" name="sent" value="Sent" />
         </form>
-        <a href="DownloadServlet">Download</a>
       </div>
 
       <%= request.getAttribute("content") != null ?
