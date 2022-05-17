@@ -1,5 +1,6 @@
 create table public_keys
 (
+    n    bigint,
     pub    bigint,
     utente varchar(50) not null
         constraint public_keys_pk

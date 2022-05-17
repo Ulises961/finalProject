@@ -10,6 +10,7 @@ import utils.RSA;
 import utils.RSAKeys;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.sql.*;
 import java.util.Properties;
@@ -21,7 +22,6 @@ import java.util.Properties;
 public class RegisterServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-
     private static final String USER = "postgres";
     private static final String PWD = "postgres";
     private static final String DRIVER_CLASS = "org.postgresql.Driver";
@@ -29,7 +29,6 @@ public class RegisterServlet extends HttpServlet {
     private static final int BCryptWorkload = 15;
 
     private static Connection conn;
-
 
     /**
      * @see HttpServlet#HttpServlet()
@@ -48,17 +47,19 @@ public class RegisterServlet extends HttpServlet {
 
             conn = DriverManager.getConnection(DB_URL, connectionProps);
 
-            //System.out.println("User \"" + USER + "\" connected to database.");
+            // System.out.println("User \"" + USER + "\" connected to database.");
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         response.setContentType("text/html");
 
-        // The replacement escapes apostrophe special character in order to store it in SQL
+        // The replacement escapes apostrophe special character in order to store it in
+        // SQL
         String name = request.getParameter("name");
         String surname = request.getParameter("surname");
         String email = request.getParameter("email");
@@ -70,13 +71,13 @@ public class RegisterServlet extends HttpServlet {
         RSAKeys keys = rsa.generateKeys();
         BigInteger privKey = keys.getE();
         BigInteger pubKey = keys.getD();
+        BigInteger n = keys.getN();
 
         try (Statement st = conn.createStatement()) {
             ResultSet sqlRes = st.executeQuery(
                     "SELECT * "
                             + "FROM users "
-                            + "WHERE email='" + email + "'"
-            );
+                            + "WHERE email='" + email + "'");
 
             if (sqlRes.next()) {
                 System.out.println("Email already registered!");
@@ -86,8 +87,8 @@ public class RegisterServlet extends HttpServlet {
                 st.execute(
                         "INSERT INTO users ( name, surname, email, password ) "
                                 + "VALUES ( '" + name + "', '" + surname + "', '" + email + "', '" + pwdhash + "' ); " +
-                                "INSERT INTO public_keys(pub,utente) VALUES (" + pubKey + ",'" + email + "')"
-                );
+                                "INSERT INTO public_keys(pub,utente,n) VALUES (" + pubKey + ",'" + email + "'," + n
+                                + ")");
 
                 request.setAttribute("email", email);
                 request.setAttribute("password", pwdhash);
@@ -96,6 +97,15 @@ public class RegisterServlet extends HttpServlet {
                 System.out.println("Registration succeeded!");
                 System.out.println("User private key " + privKey);
                 System.out.println("User public key " + pubKey);
+
+                response.setContentType("text/html");
+                PrintWriter out = response.getWriter();
+                String filename = "privateKey.txt";
+                response.setContentType("APPLICATION/OCTET-STREAM");
+                response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+                out.write(privKey.toString());
+                out.close();
+
                 request.getRequestDispatcher("home.jsp").forward(request, response);
             }
 

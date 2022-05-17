@@ -1,17 +1,16 @@
 package utils;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Random;
 
 public class RSA {
 
     public static void main(String[] args) {
-        RSA rsa = new RSA();
-        RSAKeys keys = rsa.generateKeys();
-        BigInteger[] encryptedMessage = rsa.encrypt("security", keys.e, keys.n);
-        System.out.println("encrypted message " + Arrays.toString(encryptedMessage));
-        System.out.println(rsa.decrypt(encryptedMessage, keys.d, keys.n));
+//        RSA rsa = new RSA();
+//        RSAKeys keys = rsa.generateKeys();
+//        BigInteger[] encryptedMessage = rsa.encrypt("security", keys.e, keys.n);
+//        System.out.println("encrypted message " + Arrays.toString(encryptedMessage));
+//        System.out.println(rsa.decrypt(encryptedMessage, keys.d, keys.n));
     }
 
     private static int generateRandomPrime() {
@@ -41,11 +40,11 @@ public class RSA {
 
         // generate two random prime numbers p and q.
 
-    /*    int p = 17;// generateRandomPrime();
+        int p = 17;// generateRandomPrime();
         int q = 23;// generateRandomPrime();
-*/
-        int p = generateRandomPrime();
-        int q = generateRandomPrime();
+
+        // int p = generateRandomPrime();
+        // int q = generateRandomPrime();
 
         // calculate n = p*q
         int n = p * q;
@@ -151,14 +150,18 @@ public class RSA {
 
             System.out.println("encrypted ascii " + encrypted[j]);
 
-
         }
         // for each number from the plaintext compute ( pow(number, e) ) mod n
 
         return encrypted;
     }
 
-    public String decrypt(BigInteger[] ciphertext, BigInteger d, BigInteger n) {
+    public String decrypt(String mailBody, BigInteger d, BigInteger n) {
+        String[] stringOfBigInts = mailBody.split(",");
+        BigInteger[] ciphertext = new BigInteger[stringOfBigInts.length];
+
+        for (int i = 0; i < ciphertext.length; i++)
+            ciphertext[i] = new BigInteger(stringOfBigInts[i]);
 
         StringBuilder sb = new StringBuilder();
 
