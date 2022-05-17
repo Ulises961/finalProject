@@ -40,11 +40,11 @@ public class RSA {
 
         // generate two random prime numbers p and q.
 
-        int p = 17;// generateRandomPrime();
-        int q = 23;// generateRandomPrime();
+        //int p = 17;// generateRandomPrime();
+        //int q = 23;// generateRandomPrime();
 
-        // int p = generateRandomPrime();
-        // int q = generateRandomPrime();
+        int p = generateRandomPrime();
+        int q = generateRandomPrime();
 
         // calculate n = p*q
         int n = p * q;
