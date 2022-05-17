@@ -76,23 +76,22 @@ public class NavigationServlet extends HttpServlet {
     }
 
     private String getHtmlForInbox(String email) {
-        try (Statement st = conn.createStatement()) {
-            ResultSet sqlRes = st.executeQuery(
-                    "SELECT * FROM mail "
-                            + "WHERE receiver='" + email + "'"
-                            + "ORDER BY time DESC");
+    	try{
+        	String getMailReceived = "SELECT * FROM mail WHERE receiver=? ORDER BY time DESC";
+        	PreparedStatement pstm = conn.prepareStatement(getMailReceived);
+            pstm.setString(1, email);
+            
+            ResultSet result = pstm.executeQuery(); 
 
             StringBuilder output = new StringBuilder();
             output.append("<div>\r\n");
 
-
-            while (sqlRes.next()) {
-                out.println(sqlRes.getString(5));
+            while (result.next()) {
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-                output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
+                output.append("FROM:&emsp;" + result.getString("sender") + "&emsp;&emsp;AT:&emsp;" + result.getString("time"));
                 output.append("</span>");
-                output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
-                output.append("<br>" + sqlRes.getString(4));
+                output.append("<br><b>" + result.getString("subject") + "</b>\r\n");
+                output.append("<br>" + result.getString("body"));
                 output.append("</div>\r\n");
 
                 output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
@@ -111,41 +110,35 @@ public class NavigationServlet extends HttpServlet {
     private String getHtmlForSearchResults(String email, String searchParam) {
         try (Statement st = conn.createStatement()) {
 
-            System.out.println("SELECT * FROM mail "
-                    + "WHERE ( "
-                    + "receiver='" + email + "' "
-                    + "OR "
-                    + "sender='" + email + "' "
-                    + ") AND ( "
-                    + "subject LIKE '%" + searchParam + "%' "
-                    + "OR "
-                    + "receiver LIKE '%" + searchParam + "%' "
-                    + ") ORDER BY time DESC");
-
-            ResultSet sqlRes = st.executeQuery(
-                    "SELECT * FROM mail "
-                            + "WHERE ( "
-                            + "receiver='" + email + "' "
-                            + "OR "
-                            + "sender='" + email + "' "
-                            + ") AND ( "
-                            + "subject LIKE '%" + searchParam + "%' "
-                            + "OR "
-                            + "receiver LIKE '%" + searchParam + "%' "
-                            + ") ORDER BY time DESC");
+        	String searchForMail = "SELECT * FROM mail WHERE "
+        						   + "( receiver=? OR sender=? ) "
+        						   + "( subject LIKE ? OR receiver LIKE ?) "
+        						   + "ORDER BY time DESC";
+        	
+        	PreparedStatement pstm = conn.prepareStatement(searchForMail);
+            pstm.setString(1, email);
+            pstm.setString(2, email);
+            pstm.setString(3, '%' + searchParam + '%');
+            pstm.setString(4, '%' + searchParam + '%');
+            
+            ResultSet result = pstm.executeQuery();
 
             StringBuilder output = new StringBuilder();
 
             output.append("<div>\r\n");
             output.append("<div>Search results for: " + searchParam + "</div><br>");
 
-            while (sqlRes.next()) {
-                out.println(sqlRes.getString(5));
+            while (result.next()) {
+            	String mailType = "TO";
+            	
+            	if(result.getString("receiver") == email)
+            		mailType = "FROM";
+            	
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-                output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
+                output.append(mailType + ":&emsp;" + result.getString("receiver") + "&emsp;&emsp;AT:&emsp;" + result.getString("time"));
                 output.append("</span>");
-                output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
-                output.append("<br>" + sqlRes.getString(4));
+                output.append("<br><b>" + result.getString("subject") + "</b>\r\n");
+                output.append("<br>" + result.getString("body"));
                 output.append("</div>\r\n");
 
                 output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
@@ -173,21 +166,22 @@ public class NavigationServlet extends HttpServlet {
     }
 
     private String getHtmlForSent(String email) {
-        try (Statement st = conn.createStatement()) {
-            ResultSet sqlRes = st.executeQuery(
-                    "SELECT * FROM mail "
-                            + "WHERE sender='" + email + "'"
-                            + "ORDER BY time DESC");
+        try{
+        	String getMailSent = "SELECT * FROM mail WHERE sender=? ORDER BY time DESC";
+        	PreparedStatement pstm = conn.prepareStatement(getMailSent);
+            pstm.setString(1, email);
+            
+            ResultSet result = pstm.executeQuery(); 
 
             StringBuilder output = new StringBuilder();
             output.append("<div>\r\n");
 
-            while (sqlRes.next()) {
+            while (result.next()) {
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-                output.append("TO:&emsp;" + sqlRes.getString(2) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
+                output.append("TO:&emsp;" + result.getString("receiver") + "&emsp;&emsp;AT:&emsp;" + result.getString("time"));
                 output.append("</span>");
-                output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
-                output.append("<br>" + sqlRes.getString(4));
+                output.append("<br><b>" + result.getString("subject") + "</b>\r\n");
+                output.append("<br>" + result.getString("body"));
                 output.append("</div>\r\n");
 
                 output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
