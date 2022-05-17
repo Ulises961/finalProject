@@ -148,7 +148,7 @@ public class RSA {
             BigInteger bigMod = bigPow.mod(n);
             encrypted[j] = bigMod;
 
-            System.out.println("encrypted ascii " + encrypted[j]);
+            //System.out.println("encrypted ascii " + encrypted[j]);
 
         }
         // for each number from the plaintext compute ( pow(number, e) ) mod n
@@ -170,7 +170,8 @@ public class RSA {
             BigInteger encryptedChar = ciphertext[j];
             BigInteger bigPow = encryptedChar.pow(d.intValue());
             BigInteger bigMod = bigPow.mod(n);
-            System.out.printf("positionInAlphabet %d \n", bigMod.intValue());
+            
+            //System.out.printf("positionInAlphabet %d \n", bigMod.intValue());
 
             sb.append(Character.toString(bigMod.intValue()));
 

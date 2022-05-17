@@ -105,7 +105,7 @@ public class SendMailServlet extends HttpServlet {
     	 BigInteger[] keys = getPublicKey(receiver);
          RSA rsa = new RSA();
 
-         BigInteger[] encryptedBody = rsa.encrypt(body, new BigInteger("3"), new BigInteger("391"));
+         BigInteger[] encryptedBody = rsa.encrypt(body, keys[0], keys[1]);
          String newBody = "" + encryptedBody[0];
 
          for (int i = 1; i < encryptedBody.length; i++)

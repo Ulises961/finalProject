@@ -1,16 +1,22 @@
 package servlet.finalProject;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-import java.sql.*;
-import java.util.Properties;
-
-import static java.lang.System.out;
+import utils.RSA;
 
 /**
  * Servlet implementation class NavigationServlet
@@ -61,11 +67,17 @@ public class NavigationServlet extends HttpServlet {
         String searchParam = request.getParameter("searchParam");
         String email = request.getParameter("email");
         String pwd = request.getParameter("password");
-
+        String privKeyString = request.getParameter("privKey").replaceAll("[^0-9]","");
+        
+        if(privKeyString == "")
+        	privKeyString = "0";
+        
+        BigInteger privKey = new BigInteger(privKeyString);
+        
         if (request.getParameter("newMail") != null)
             request.setAttribute("content", getHtmlForNewMail(email, pwd));
         else if (request.getParameter("inbox") != null)
-            request.setAttribute("content", getHtmlForInbox(email));
+            request.setAttribute("content", getHtmlForInbox(email, privKey));
         else if (request.getParameter("sent") != null)
             request.setAttribute("content", getHtmlForSent(email));
         else if (request.getParameter("search") != null)
@@ -74,8 +86,34 @@ public class NavigationServlet extends HttpServlet {
         request.setAttribute("email", email);
         request.getRequestDispatcher("home.jsp").forward(request, response);
     }
+    
+    protected BigInteger getN(String email) {
+        BigInteger n = new BigInteger("0");
 
-    private String getHtmlForInbox(String email) {
+        try{
+        	String sendMail = "SELECT n FROM public_keys WHERE utente =?;";
+        	PreparedStatement pstm = conn.prepareStatement(sendMail);
+        	pstm.setString(1, email);
+        	
+            ResultSet result = pstm.executeQuery();
+
+            while (result.next()) {
+                BigDecimal decimalN = result.getBigDecimal("n");
+                n = decimalN.toBigInteger();
+                
+                return n;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("An error occurred while getting n.");
+
+        return n;
+    }
+
+    private String getHtmlForInbox(String email, BigInteger privKey) {
     	try{
         	String getMailReceived = "SELECT * FROM mail WHERE receiver=? ORDER BY time DESC";
         	PreparedStatement pstm = conn.prepareStatement(getMailReceived);
@@ -87,11 +125,19 @@ public class NavigationServlet extends HttpServlet {
             output.append("<div>\r\n");
 
             while (result.next()) {
+            	
+            	RSA rsa = new RSA();
+            	String body = rsa.decrypt(
+	    			result.getString("body"),
+	    			privKey,
+	    			getN(email)
+            	);
+            	
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
                 output.append("FROM:&emsp;" + result.getString("sender") + "&emsp;&emsp;AT:&emsp;" + result.getString("time"));
                 output.append("</span>");
                 output.append("<br><b>" + result.getString("subject") + "</b>\r\n");
-                output.append("<br>" + result.getString("body"));
+                output.append("<br>" + body);
                 output.append("</div>\r\n");
 
                 output.append("<hr style=\"border-top: 2px solid black;\">\r\n");

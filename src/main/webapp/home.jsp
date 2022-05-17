@@ -42,6 +42,7 @@ pageEncoding="ISO-8859-1" %>
           <input type="hidden" name="email" value="<%=
           request.getAttribute("email") %>"> <input type="hidden"
           name="password" value="<%= request.getAttribute("password") %>">
+          <input type="text" class="sm" placeholder="Private Key" size="12" name="privKey"/>
           <input type="submit" name="newMail" value="New Mail" />
           <input type="submit" name="inbox" value="Inbox" />
           <input type="submit" name="sent" value="Sent" />

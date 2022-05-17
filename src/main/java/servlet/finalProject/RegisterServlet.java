@@ -69,12 +69,10 @@ public class RegisterServlet extends HttpServlet {
         String pwdhash = BCrypt.hashpw(pwd, salt);
         
         //GENERATE PUBLICK AND PRIVATE KEYS
-        //THERE IS MOST DEFINITELY AN ERROR EITHER HERE OR IN RSA.java
-        //IN RSA.java privKey AND pubKey ARE INVERTED
         RSA rsa = new RSA();
         RSAKeys keys = rsa.generateKeys();
-        BigInteger privKey = keys.getE();
-        BigInteger pubKey = keys.getD();
+        BigInteger privKey = keys.getD();
+        BigInteger pubKey = keys.getE();
         BigInteger n = keys.getN();
         
         try{
