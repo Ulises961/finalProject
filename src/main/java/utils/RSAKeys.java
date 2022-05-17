@@ -21,6 +21,14 @@ public class RSAKeys implements RSAKey {
         return e;
     }
 
+    public void setN(BigInteger n) {
+        this.n = n;
+    }
+
+    public void setD(BigInteger d) {
+        this.d = d;
+    }
+
     public void setE(BigInteger e) {
         this.e = e;
     }
@@ -42,6 +50,10 @@ public class RSAKeys implements RSAKey {
     public BigInteger getModulus() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public BigInteger getN() {
+        return n;
     }
 
 }

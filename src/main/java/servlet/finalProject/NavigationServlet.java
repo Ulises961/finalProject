@@ -1,18 +1,14 @@
 package servlet.finalProject;
 
-import jakarta.servlet.http.HttpServlet;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Properties;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.sql.*;
+import java.util.Properties;
 
 import static java.lang.System.out;
 
@@ -21,188 +17,189 @@ import static java.lang.System.out;
  */
 @WebServlet("/NavigationServlet")
 public class NavigationServlet extends HttpServlet {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String USER = "postgres";
-	private static final String PWD = "postgres";
-	private static final String DRIVER_CLASS = "org.postgresql.Driver";
-	private static final String DB_URL = "jdbc:postgresql://localhost/finalproject";
+    private static final String USER = "postgres";
+    private static final String PWD = "postgres";
+    private static final String DRIVER_CLASS = "org.postgresql.Driver";
+    private static final String DB_URL = "jdbc:postgresql://localhost/finalproject";
 
-	private static Connection conn;
+    private static Connection conn;
 
-	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
-	public NavigationServlet() {
-		super();
-	}
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public NavigationServlet() {
+        super();
+    }
 
-	public void init() throws ServletException {
-		try {
-			Class.forName(DRIVER_CLASS);
+    public void init() throws ServletException {
+        try {
+            Class.forName(DRIVER_CLASS);
 
-			Properties connectionProps = new Properties();
-			connectionProps.put("user", USER);
-			connectionProps.put("password", PWD);
+            Properties connectionProps = new Properties();
+            connectionProps.put("user", USER);
+            connectionProps.put("password", PWD);
 
-			conn = DriverManager.getConnection(DB_URL, connectionProps);
+            conn = DriverManager.getConnection(DB_URL, connectionProps);
 
-			// System.out.println("User \"" + USER + "\" connected to database.");
+            // System.out.println("User \"" + USER + "\" connected to database.");
 
-		} catch (ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
-		}
-	}
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		response.setContentType("text/html");
+    /**
+     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+     * response)
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html");
 
-		String searchParam = request.getParameter("searchParam");
-		String email = request.getParameter("email");
-		String pwd = request.getParameter("password");
+        String searchParam = request.getParameter("searchParam");
+        String email = request.getParameter("email");
+        String pwd = request.getParameter("password");
 
-		if (request.getParameter("newMail") != null)
-			request.setAttribute("content", getHtmlForNewMail(email, pwd));
-		else if (request.getParameter("inbox") != null)
-			request.setAttribute("content", getHtmlForInbox(email));
-		else if (request.getParameter("sent") != null)
-			request.setAttribute("content", getHtmlForSent(email));
-		else if (request.getParameter("search") != null)
-			request.setAttribute("content", getHtmlForSearchResults(email, searchParam));
+        if (request.getParameter("newMail") != null)
+            request.setAttribute("content", getHtmlForNewMail(email, pwd));
+        else if (request.getParameter("inbox") != null)
+            request.setAttribute("content", getHtmlForInbox(email));
+        else if (request.getParameter("sent") != null)
+            request.setAttribute("content", getHtmlForSent(email));
+        else if (request.getParameter("search") != null)
+            request.setAttribute("content", getHtmlForSearchResults(email, searchParam));
 
-		request.setAttribute("email", email);
-		request.getRequestDispatcher("home.jsp").forward(request, response);
-	}
+        request.setAttribute("email", email);
+        request.getRequestDispatcher("home.jsp").forward(request, response);
+    }
 
-	private String getHtmlForInbox(String email) {
-		try (Statement st = conn.createStatement()) {
-			ResultSet sqlRes = st.executeQuery(
-					"SELECT * FROM mail "
-							+ "WHERE receiver='" + email + "'"
-							+ "ORDER BY time DESC");
+    private String getHtmlForInbox(String email) {
+        try (Statement st = conn.createStatement()) {
+            ResultSet sqlRes = st.executeQuery(
+                    "SELECT * FROM mail "
+                            + "WHERE receiver='" + email + "'"
+                            + "ORDER BY time DESC");
 
-			StringBuilder output = new StringBuilder();
-			output.append("<div>\r\n");
+            StringBuilder output = new StringBuilder();
+            output.append("<div>\r\n");
 
-			while (sqlRes.next()) {
-				out.println(sqlRes.getString(5));
-				output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-				output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
-				output.append("</span>");
-				output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
-				output.append("<br>" + sqlRes.getString(4));
-				output.append("</div>\r\n");
 
-				output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
-			}
+            while (sqlRes.next()) {
+                out.println(sqlRes.getString(5));
+                output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
+                output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
+                output.append("</span>");
+                output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
+                output.append("<br>" + sqlRes.getString(4));
+                output.append("</div>\r\n");
 
-			output.append("</div>");
+                output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
+            }
 
-			return output.toString();
+            output.append("</div>");
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return "ERROR IN FETCHING INBOX MAILS!";
-		}
-	}
+            return output.toString();
 
-	private String getHtmlForSearchResults(String email, String searchParam) {
-		try (Statement st = conn.createStatement()) {
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "ERROR IN FETCHING INBOX MAILS!";
+        }
+    }
 
-			System.out.println("SELECT * FROM mail "
-					+ "WHERE ( "
-					+ "receiver='" + email + "' "
-					+ "OR "
-					+ "sender='" + email + "' "
-					+ ") AND ( "
-					+ "subject LIKE '%" + searchParam + "%' "
-					+ "OR "
-					+ "receiver LIKE '%" + searchParam + "%' "
-					+ ") ORDER BY time DESC");
+    private String getHtmlForSearchResults(String email, String searchParam) {
+        try (Statement st = conn.createStatement()) {
 
-			ResultSet sqlRes = st.executeQuery(
-					"SELECT * FROM mail "
-							+ "WHERE ( "
-							+ "receiver='" + email + "' "
-							+ "OR "
-							+ "sender='" + email + "' "
-							+ ") AND ( "
-							+ "subject LIKE '%" + searchParam + "%' "
-							+ "OR "
-							+ "receiver LIKE '%" + searchParam + "%' "
-							+ ") ORDER BY time DESC");
+            System.out.println("SELECT * FROM mail "
+                    + "WHERE ( "
+                    + "receiver='" + email + "' "
+                    + "OR "
+                    + "sender='" + email + "' "
+                    + ") AND ( "
+                    + "subject LIKE '%" + searchParam + "%' "
+                    + "OR "
+                    + "receiver LIKE '%" + searchParam + "%' "
+                    + ") ORDER BY time DESC");
 
-			StringBuilder output = new StringBuilder();
+            ResultSet sqlRes = st.executeQuery(
+                    "SELECT * FROM mail "
+                            + "WHERE ( "
+                            + "receiver='" + email + "' "
+                            + "OR "
+                            + "sender='" + email + "' "
+                            + ") AND ( "
+                            + "subject LIKE '%" + searchParam + "%' "
+                            + "OR "
+                            + "receiver LIKE '%" + searchParam + "%' "
+                            + ") ORDER BY time DESC");
 
-			output.append("<div>\r\n");
-			output.append("<div>Search results for: " + searchParam + "</div><br>");
+            StringBuilder output = new StringBuilder();
 
-			while (sqlRes.next()) {
-				out.println(sqlRes.getString(5));
-				output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-				output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
-				output.append("</span>");
-				output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
-				output.append("<br>" + sqlRes.getString(4));
-				output.append("</div>\r\n");
+            output.append("<div>\r\n");
+            output.append("<div>Search results for: " + searchParam + "</div><br>");
 
-				output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
-			}
+            while (sqlRes.next()) {
+                out.println(sqlRes.getString(5));
+                output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
+                output.append("FROM:&emsp;" + sqlRes.getString(1) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
+                output.append("</span>");
+                output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
+                output.append("<br>" + sqlRes.getString(4));
+                output.append("</div>\r\n");
 
-			output.append("</div>");
+                output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
+            }
 
-			return output.toString();
+            output.append("</div>");
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return "ERROR IN FETCHING INBOX MAILS!";
-		}
-	}
+            return output.toString();
 
-	private String getHtmlForNewMail(String email, String pwd) {
-		return "<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
-				+ "		<input type=\"hidden\" name=\"email\" value=\"" + email + "\">\r\n"
-				+ "		<input type=\"hidden\" name=\"password\" value=\"" + pwd + "\">\r\n"
-				+ "		<input class=\"single-row-input\" type=\"email\" name=\"receiver\" placeholder=\"Receiver\" required>\r\n"
-				+ "		<input class=\"single-row-input\" type=\"text\"  name=\"subject\" placeholder=\"Subject\" required>\r\n"
-				+ "		<textarea class=\"textarea-input\" name=\"body\" placeholder=\"Body\" wrap=\"hard\" required></textarea>\r\n"
-				+ "		<input type=\"submit\" name=\"sent\" value=\"Send\">\r\n"
-				+ "	</form>";
-	}
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "ERROR IN FETCHING INBOX MAILS!";
+        }
+    }
 
-	private String getHtmlForSent(String email) {
-		try (Statement st = conn.createStatement()) {
-			ResultSet sqlRes = st.executeQuery(
-					"SELECT * FROM mail "
-							+ "WHERE sender='" + email + "'"
-							+ "ORDER BY time DESC");
+    private String getHtmlForNewMail(String email, String pwd) {
+        return "<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
+                + "		<input type=\"hidden\" name=\"email\" value=\"" + email + "\">\r\n"
+                + "		<input type=\"hidden\" name=\"password\" value=\"" + pwd + "\">\r\n"
+                + "		<input class=\"single-row-input\" type=\"email\" name=\"receiver\" placeholder=\"Receiver\" required>\r\n"
+                + "		<input class=\"single-row-input\" type=\"text\"  name=\"subject\" placeholder=\"Subject\" required>\r\n"
+                + "		<textarea class=\"textarea-input\" name=\"body\" placeholder=\"Body\" wrap=\"hard\" required></textarea>\r\n"
+                + "		<input type=\"submit\" name=\"sent\" value=\"Send\">\r\n"
+                + "	</form>";
+    }
 
-			StringBuilder output = new StringBuilder();
-			output.append("<div>\r\n");
+    private String getHtmlForSent(String email) {
+        try (Statement st = conn.createStatement()) {
+            ResultSet sqlRes = st.executeQuery(
+                    "SELECT * FROM mail "
+                            + "WHERE sender='" + email + "'"
+                            + "ORDER BY time DESC");
 
-			while (sqlRes.next()) {
-				output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-				output.append("TO:&emsp;" + sqlRes.getString(2) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
-				output.append("</span>");
-				output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
-				output.append("<br>" + sqlRes.getString(4));
-				output.append("</div>\r\n");
+            StringBuilder output = new StringBuilder();
+            output.append("<div>\r\n");
 
-				output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
-			}
+            while (sqlRes.next()) {
+                output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
+                output.append("TO:&emsp;" + sqlRes.getString(2) + "&emsp;&emsp;AT:&emsp;" + sqlRes.getString(5));
+                output.append("</span>");
+                output.append("<br><b>" + sqlRes.getString(3) + "</b>\r\n");
+                output.append("<br>" + sqlRes.getString(4));
+                output.append("</div>\r\n");
 
-			output.append("</div>");
+                output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
+            }
 
-			return output.toString();
+            output.append("</div>");
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return "ERROR IN FETCHING INBOX MAILS!";
-		}
-	}
+            return output.toString();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "ERROR IN FETCHING INBOX MAILS!";
+        }
+    }
 }

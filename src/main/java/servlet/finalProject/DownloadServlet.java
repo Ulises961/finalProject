@@ -25,10 +25,7 @@ public class DownloadServlet extends HttpServlet {
         String privateKey = keys.getD().toString();
         response.setContentType("APPLICATION/OCTET-STREAM");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-
-
         out.write(privateKey);
-
         out.close();
     }
 
