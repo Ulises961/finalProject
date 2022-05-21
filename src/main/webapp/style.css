@@ -25,10 +25,11 @@
 }
 
 .btn-group {
-    border-right: 5px solid;
+    border-right: 4px solid;
+    padding-top: 1px;
 }
 
-.btn-group input[submit] {
+.btn-group input[type=submit] {
     background-color: #04AA6D; /* Green background */
     border: 1px solid green; /* Green border */
     color: white; /* White text */

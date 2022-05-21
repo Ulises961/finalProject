@@ -25,25 +25,14 @@ pageEncoding="ISO-8859-1" %>
 
     <div class="grid-container">
       <div>
-        <form action="NavigationServlet" method="post">
-          <input type="hidden" name="email" value="<%=
-          request.getAttribute("email") %>"> <input type="hidden"
-          name="password" value="<%= request.getAttribute("password") %>">
-          <input type="text" name="searchParam" size="12" />
-          <input
-            type="submit"
-            id="search"
-            style="margin-left: 25%"
-            name="search"
-            value="search"
-          />
-        </form>
         <form class="btn-group" action="NavigationServlet" method="post">
           <input type="hidden" name="email" value="<%=
           request.getAttribute("email") %>"> <input type="hidden"
           name="password" value="<%= request.getAttribute("password") %>">
-          <input type="text" class="sm" placeholder="Private Key" size="12" name="privKey"/>
+          <input type="text" class="sm" placeholder="Search input" name="searchParam" size="12" />
+          <input type="submit" name="search" value="search" />
           <input type="submit" name="newMail" value="New Mail" />
+          <input type="text" class="sm" placeholder="Private Key" size="12" name="privKey"/>
           <input type="submit" name="inbox" value="Inbox" />
           <input type="submit" name="sent" value="Sent" />
         </form>
