@@ -1,18 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
-         version="4.0">
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd" version="4.0">
     <display-name>ExamProject</display-name>
     <welcome-file-list>
         <welcome-file>login.html</welcome-file>
-        <welcome-file>index.html</welcome-file>
-        <welcome-file>index.jsp</welcome-file>
-        <welcome-file>index.htm</welcome-file>
-        <welcome-file>default.html</welcome-file>
-        <welcome-file>default.jsp</welcome-file>
-        <welcome-file>default.htm</welcome-file>
     </welcome-file-list>
 
 
- </web-app>
+    <!-- <listener>
+        <listener-class>org.owasp.csrfguard.CsrfGuardServletContextListener</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>org.owasp.csrfguard.CsrfGuardHttpSessionListener</listener-class>
+    </listener>
+
+    <context-param>
+        <param-name>Owasp.CsrfGuard.Config</param-name>
+        <param-value>WEB-INF/Owasp.CsrfGuard.properties</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>Owasp.CsrfGuard.Config.Print</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <filter>
+        <filter-name>CSRFGuard</filter-name>
+        <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>CSRFGuard</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping> -->
+
+    
+    <!-- init -->
+    <servlet>
+        <servlet-name>CsrfServlet</servlet-name>
+        <servlet-class>org.owasp.csrfguard.servlet.JavaScriptServlet</servlet-class>
+        <init-param>
+            <param-name>source-file</param-name>
+            <param-value>WEB-INF/csrfguard.js</param-value>
+        </init-param>
+        <init-param>
+            <param-name>inject-into-forms</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>inject-into-attributes</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>domain-strict</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+            <param-name>referer-pattern</param-name>
+            <param-value>.*localhost.*</param-value>
+        </init-param>
+    </servlet>
+    
+    
+    <servlet-mapping>
+        <servlet-name>CsrfServlet</servlet-name>
+        <url-pattern>/csrfguard</url-pattern>
+    </servlet-mapping>
+    <!-- finish -->
+
+
+    <!-- <servlet-mapping>
+        <servlet-name>NavigationServlet</servlet-name>
+        <url-pattern>/NavigationServlet</url-pattern>
+    </servlet-mapping> -->
+
+    <!-- <servlet-mapping>
+        <servlet-name>SendMailServlet</servlet-name>
+        <url-pattern>/SendMailServlet</url-pattern>
+    </servlet-mapping> -->
+
+
+</web-app>
