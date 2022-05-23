@@ -82,7 +82,8 @@ public class SendMailServlet extends HttpServlet {
             pstm.setString(2, sanitizedReceiver);
             pstm.setString(3, sanitizedSubject);
             pstm.setString(4, encryptedBody);
-            pstm.setTimestamp(5, time);
+            // pstm.setTimestamp(5, time);
+            pstm.setString(5, LDT_FORMATTER.format(time.toLocalDateTime()));
 
             int numUpdates = pstm.executeUpdate();
 

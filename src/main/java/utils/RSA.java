@@ -6,11 +6,34 @@ import java.util.Random;
 public class RSA {
 
     public static void main(String[] args) {
-//        RSA rsa = new RSA();
-//        RSAKeys keys = rsa.generateKeys();
-//        BigInteger[] encryptedMessage = rsa.encrypt("security", keys.e, keys.n);
-//        System.out.println("encrypted message " + Arrays.toString(encryptedMessage));
-//        System.out.println(rsa.decrypt(encryptedMessage, keys.d, keys.n));
+        RSA rsa_A = new RSA();
+        // RSA rsa_B = new RSA();
+
+        // RSAKeys keys_A = rsa_A.generateKeys();
+        // RSAKeys keys_B = rsa_B.generateKeys();
+
+        // System.out.println("\nA => e=" + keys_A.getE() + " d=" + keys_A.getD());
+        // System.out.println("B => e=" + keys_B.getE() + " d=" + keys_B.getD());
+
+        BigInteger[] encryptedMessage1 = rsa_A.encrypt("security", new BigInteger("3"), new BigInteger("103027"));
+
+        BigInteger[] encryptedMessage2 = rsa_A.encrypt("security", new BigInteger("3"), new BigInteger("2463"));
+
+        String stringMessage1 = "" + encryptedMessage1[0];
+
+        for (int i = 1; i < encryptedMessage1.length; i++)
+            stringMessage1 += "," + encryptedMessage1[i];
+
+        String stringMessage2 = "" + encryptedMessage2[0];
+
+        for (int i = 1; i < encryptedMessage2.length; i++)
+            stringMessage2 += "," + encryptedMessage2[i];
+
+        System.out.println(rsa_A.decrypt(stringMessage1, new BigInteger("68251"), new BigInteger("103027")));
+        System.out.println(rsa_A.decrypt(stringMessage1, new BigInteger("547"), new BigInteger("2463")));
+
+        // System.out.println("encrypted message " + Arrays.toString(encryptedMessage));
+        // System.out.println(rsa.decrypt(stringMessage, keys_A.d, keys_A.n));
     }
 
     private static int generateRandomPrime() {
@@ -40,16 +63,21 @@ public class RSA {
 
         // generate two random prime numbers p and q.
 
-        //int p = 17;// generateRandomPrime();
-        //int q = 23;// generateRandomPrime();
+        // int p = 17;// generateRandomPrime();
+        // int q = 23;// generateRandomPrime();
 
         int p = generateRandomPrime();
         int q = generateRandomPrime();
+
+        System.out.println("\np=" + p);
+        System.out.println("q=" + q);
 
         // calculate n = p*q
         int n = p * q;
         // calculate phi = (p-1)*(q-1)
         int phi = (p - 1) * (q - 1);
+        System.out.println("phi=" + phi + "\n");
+
         // compute e: the minimum number that is coprime with phi greater than 1 and
         // lower than phi
         int e = 2;
@@ -64,7 +92,7 @@ public class RSA {
 
         // Extended Euclidean Algorithm Tip:
 
-        int[] ps = {0, 1};
+        int[] ps = { 0, 1 };
         int quotient = 0;
         int dividend = phi;
         int divisor = e;
@@ -148,7 +176,7 @@ public class RSA {
             BigInteger bigMod = bigPow.mod(n);
             encrypted[j] = bigMod;
 
-            //System.out.println("encrypted ascii " + encrypted[j]);
+            // System.out.println("encrypted ascii " + encrypted[j]);
 
         }
         // for each number from the plaintext compute ( pow(number, e) ) mod n
@@ -170,8 +198,8 @@ public class RSA {
             BigInteger encryptedChar = ciphertext[j];
             BigInteger bigPow = encryptedChar.pow(d.intValue());
             BigInteger bigMod = bigPow.mod(n);
-            
-            //System.out.printf("positionInAlphabet %d \n", bigMod.intValue());
+
+            // System.out.printf("positionInAlphabet %d \n", bigMod.intValue());
 
             sb.append(Character.toString(bigMod.intValue()));
 

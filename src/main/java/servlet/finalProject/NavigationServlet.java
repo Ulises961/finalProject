@@ -1,5 +1,18 @@
 package servlet.finalProject;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
+import java.util.Properties;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -7,12 +20,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import utils.RSA;
 import utils.Sanitizer;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.*;
-import java.util.Properties;
 
 /**
  * Servlet implementation class NavigationServlet
@@ -44,7 +51,7 @@ public class NavigationServlet extends HttpServlet {
             connectionProps.put("password", PWD);
 
             conn = DriverManager.getConnection(DB_URL, connectionProps);
-            System.out.println("updated navigation servlet");
+         
 
             // System.out.println("User \"" + USER + "\" connected to database.");
 
@@ -61,9 +68,9 @@ public class NavigationServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html");
 
-        String searchParam = request.getParameter("searchParam");
-        String email = request.getParameter("email");
-        String pwd = request.getParameter("password");
+        String searchParam = Sanitizer.sanitizeJsInput(request.getParameter("searchParam"));
+        String email = Sanitizer.sanitizeJsInput(request.getParameter("email"));
+        String pwd = Sanitizer.sanitizeJsInput(request.getParameter("password"));
         String privKeyString = request.getParameter("privKey").replaceAll("[^0-9]", "");
 
         if (privKeyString == "")
@@ -121,6 +128,9 @@ public class NavigationServlet extends HttpServlet {
             StringBuilder output = new StringBuilder();
             output.append("<div>\r\n");
 
+            final String LDT_PATTERN = "dd.MM.YYYY - HH:mm";
+            final DateTimeFormatter LDT_FORMATTER = DateTimeFormatter.ofPattern(LDT_PATTERN);
+            
             while (result.next()) {
 
                 RSA rsa = new RSA();
@@ -130,18 +140,18 @@ public class NavigationServlet extends HttpServlet {
                         privKey,
                         getN(email));
 
-                String sanitizedBody = body;
-                String sanitizedSender = result.getString("sender");
-                String sanitizedTime = result.getString("time");
-                String sanitizedSubject = result.getString("subject");
-                System.out.println("sanitized subject" + sanitizedSubject);
+
+                String sender = result.getString("sender");
+                Timestamp time = result.getTimestamp("time");
+                String subject = result.getString("subject");
+                System.out.println("sanitized subject" + subject);
 
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-                output.append("FROM: " + sanitizedSender + "\t\tAT:"
-                        + sanitizedTime);
+                output.append("FROM: " + sender + "\t\tAT:"
+                        + LDT_FORMATTER.format(time.toLocalDateTime()));
                 output.append("</span>");
-                output.append("<br><b>" + sanitizedSubject + "</b>\r\n");
-                output.append("<br>" + sanitizedBody);
+                output.append("<br><b>" + subject + "</b>\r\n");
+                output.append("<br>" + body);
                 output.append("</div>\r\n");
 
                 output.append("<hr style=\"border-top: 2px solid black;\">\r\n");

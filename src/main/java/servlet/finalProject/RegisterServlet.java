@@ -1,19 +1,25 @@
 package servlet.finalProject;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Properties;
+
+import org.mindrot.jbcrypt.BCrypt;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.mindrot.jbcrypt.BCrypt;
 import utils.RSA;
 import utils.RSAKeys;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.sql.*;
-import java.util.Properties;
+import utils.Sanitizer;
 
 /**
  * Servlet implementation class RegisterServlet
@@ -59,10 +65,10 @@ public class RegisterServlet extends HttpServlet {
     	
         response.setContentType("text/html");
 
-        String name = request.getParameter("name");
-        String surname = request.getParameter("surname");
-        String email = request.getParameter("email");
-        String pwd = request.getParameter("password");
+        String name = Sanitizer.sanitizeJsInput(request.getParameter("name"));
+        String surname = Sanitizer.sanitizeJsInput(request.getParameter("surname"));
+        String email = Sanitizer.sanitizeJsInput(request.getParameter("email"));
+        String pwd = Sanitizer.sanitizeJsInput(request.getParameter("password"));
         
         //GENERATE HASHED PASSWORD
         String salt = BCrypt.gensalt(BCryptWorkload);
