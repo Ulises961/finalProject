@@ -1,10 +1,8 @@
 package utils;
 
-import org.owasp.encoder.Encode;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 
-import java.util.regex.Pattern;
 
 public class Sanitizer {
 
@@ -51,14 +49,9 @@ public class Sanitizer {
                                 .toFactory();
 
                 String safeOutput = sanitizer.sanitize(unsafeHtml);
-                System.out.println("unsafe html " + unsafeHtml + " safe output " + safeOutput + " enconded: "
-                                + Encode.forHtml(safeOutput));
+               
                 return safeOutput;
 
         }
 
-        public static void main(String[] args) {
-                String html = "<script> alert('hacked');</script>";
-                System.out.println(sanitizeJsInput(html));
-        }
 }

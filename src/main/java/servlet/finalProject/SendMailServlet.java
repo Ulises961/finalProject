@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import utils.RSA;
+import utils.Sanitizer;
 
 /**
  * Servlet implementation class SendMailServlet
@@ -66,20 +67,20 @@ public class SendMailServlet extends HttpServlet {
         final String LDT_PATTERN = "HH:mm:ss";
         final DateTimeFormatter LDT_FORMATTER = DateTimeFormatter.ofPattern(LDT_PATTERN);
 
-        String sender = request.getParameter("email");
-        String receiver = request.getParameter("receiver");
-        String subject = request.getParameter("subject");
-        String body = request.getParameter("body");
+        String sanitizedSender = Sanitizer.sanitizeJsInput(request.getParameter("email"));
+        String sanitizedReceiver = Sanitizer.sanitizeJsInput(request.getParameter("receiver"));
+        String sanitizedSubject = Sanitizer.sanitizeJsInput(request.getParameter("subject"));
+        String sanitizedBody = Sanitizer.sanitizeJsInput(request.getParameter("body"));
         Timestamp time = Timestamp.valueOf(LocalDateTime.now());
 
-        String encryptedBody = encryptMailBody(body, receiver);
+        String encryptedBody = encryptMailBody(sanitizedBody, sanitizedReceiver);
 
         try {
             String sendMail = "INSERT INTO mail ( sender, receiver, subject, body, time ) VALUES (?, ?, ?, ?, ?);";
             PreparedStatement pstm = conn.prepareStatement(sendMail);
-            pstm.setString(1, sender);
-            pstm.setString(2, receiver);
-            pstm.setString(3, subject);
+            pstm.setString(1, sanitizedSender);
+            pstm.setString(2, sanitizedReceiver);
+            pstm.setString(3, sanitizedSubject);
             pstm.setString(4, encryptedBody);
             pstm.setTimestamp(5, time);
 
@@ -95,7 +96,7 @@ public class SendMailServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        request.setAttribute("email", sender);
+        request.setAttribute("email", sanitizedSender);
         request.getRequestDispatcher("home.jsp").forward(request, response);
     }
 
