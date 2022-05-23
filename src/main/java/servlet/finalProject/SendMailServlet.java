@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import utils.RSA;
+import utils.Sanitizer;
 
 /**
  * Servlet implementation class SendMailServlet
@@ -66,62 +67,62 @@ public class SendMailServlet extends HttpServlet {
         final String LDT_PATTERN = "HH:mm:ss";
         final DateTimeFormatter LDT_FORMATTER = DateTimeFormatter.ofPattern(LDT_PATTERN);
 
-        String sender = request.getParameter("email");
-        String receiver = request.getParameter("receiver");
-        String subject = request.getParameter("subject");
-        String body = request.getParameter("body");
-        String time = LDT_FORMATTER.format(LocalTime.now());
-        
-        String encryptedBody = encryptMailBody(body, receiver);
+        String sanitizedSender = Sanitizer.sanitizeJsInput(request.getParameter("email"));
+        String sanitizedReceiver = Sanitizer.sanitizeJsInput(request.getParameter("receiver"));
+        String sanitizedSubject = Sanitizer.sanitizeJsInput(request.getParameter("subject"));
+        String sanitizedBody = Sanitizer.sanitizeJsInput(request.getParameter("body"));
+        Timestamp time = Timestamp.valueOf(LocalDateTime.now());
 
-        try{
-        	String sendMail = "INSERT INTO mail ( sender, receiver, subject, body, time ) VALUES (?, ?, ?, ?, ?);";
-        	PreparedStatement pstm = conn.prepareStatement(sendMail);
-        	pstm.setString(1, sender);
-        	pstm.setString(2, receiver);
-        	pstm.setString(3, subject);
-        	pstm.setString(4, encryptedBody);
-        	pstm.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
-        	
-        	int numUpdates = pstm.executeUpdate();
-        	
-        	if(numUpdates == 1)
-        		System.out.println("Email succesfully sent!");
-        	else
-        		System.out.println("Could not send email!");
+        String encryptedBody = encryptMailBody(sanitizedBody, sanitizedReceiver);
+
+        try {
+            String sendMail = "INSERT INTO mail ( sender, receiver, subject, body, time ) VALUES (?, ?, ?, ?, ?);";
+            PreparedStatement pstm = conn.prepareStatement(sendMail);
+            pstm.setString(1, sanitizedSender);
+            pstm.setString(2, sanitizedReceiver);
+            pstm.setString(3, sanitizedSubject);
+            pstm.setString(4, encryptedBody);
+            pstm.setTimestamp(5, time);
+
+            int numUpdates = pstm.executeUpdate();
+
+            if (numUpdates == 1)
+                System.out.println("Email succesfully sent!");
+            else
+                System.out.println("Could not send email!");
 
         } catch (SQLException e) {
-        	System.out.println("Could not send email!");
+            System.out.println("Could not send email!");
             e.printStackTrace();
         }
 
-        request.setAttribute("email", sender);
+        request.setAttribute("email", sanitizedSender);
         request.getRequestDispatcher("home.jsp").forward(request, response);
     }
 
     //
 
     protected String encryptMailBody(String body, String receiver) {
-    	 BigInteger[] keys = getPublicKey(receiver);
-         RSA rsa = new RSA();
+        BigInteger[] keys = getPublicKey(receiver);
+        RSA rsa = new RSA();
 
-         BigInteger[] encryptedBody = rsa.encrypt(body, keys[0], keys[1]);
-         String newBody = "" + encryptedBody[0];
+        BigInteger[] encryptedBody = rsa.encrypt(body, keys[0], keys[1]);
+        String newBody = "" + encryptedBody[0];
 
-         for (int i = 1; i < encryptedBody.length; i++)
-             newBody += "," + encryptedBody[i];
-         
-         return newBody;
+        for (int i = 1; i < encryptedBody.length; i++)
+            newBody += "," + encryptedBody[i];
+
+        return newBody;
     }
-    
+
     protected BigInteger[] getPublicKey(String receiver) {
         BigInteger[] keys = new BigInteger[2];
 
-        try{
-        	String sendMail = "SELECT pub,n  FROM public_keys WHERE utente =?;";
-        	PreparedStatement pstm = conn.prepareStatement(sendMail);
-        	pstm.setString(1, receiver);
-        	
+        try {
+            String sendMail = "SELECT pub,n  FROM public_keys WHERE utente =?;";
+            PreparedStatement pstm = conn.prepareStatement(sendMail);
+            pstm.setString(1, receiver);
+
             ResultSet result = pstm.executeQuery();
 
             while (result.next()) {
