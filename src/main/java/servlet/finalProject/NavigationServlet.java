@@ -1,22 +1,18 @@
 package servlet.finalProject;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Properties;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import utils.RSA;
+import utils.Sanitizer;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.*;
+import java.util.Properties;
 
 /**
  * Servlet implementation class NavigationServlet
@@ -48,6 +44,7 @@ public class NavigationServlet extends HttpServlet {
             connectionProps.put("password", PWD);
 
             conn = DriverManager.getConnection(DB_URL, connectionProps);
+            System.out.println("updated navigation servlet");
 
             // System.out.println("User \"" + USER + "\" connected to database.");
 
@@ -58,7 +55,7 @@ public class NavigationServlet extends HttpServlet {
 
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-     * response)
+     *      response)
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -67,13 +64,13 @@ public class NavigationServlet extends HttpServlet {
         String searchParam = request.getParameter("searchParam");
         String email = request.getParameter("email");
         String pwd = request.getParameter("password");
-        String privKeyString = request.getParameter("privKey").replaceAll("[^0-9]","");
-        
-        if(privKeyString == "")
-        	privKeyString = "0";
-        
+        String privKeyString = request.getParameter("privKey").replaceAll("[^0-9]", "");
+
+        if (privKeyString == "")
+            privKeyString = "0";
+
         BigInteger privKey = new BigInteger(privKeyString);
-        
+
         if (request.getParameter("newMail") != null)
             request.setAttribute("content", getHtmlForNewMail(email, pwd));
         else if (request.getParameter("inbox") != null)
@@ -86,21 +83,21 @@ public class NavigationServlet extends HttpServlet {
         request.setAttribute("email", email);
         request.getRequestDispatcher("home.jsp").forward(request, response);
     }
-    
+
     protected BigInteger getN(String email) {
         BigInteger n = new BigInteger("0");
 
-        try{
-        	String sendMail = "SELECT n FROM public_keys WHERE utente =?;";
-        	PreparedStatement pstm = conn.prepareStatement(sendMail);
-        	pstm.setString(1, email);
-        	
+        try {
+            String sendMail = "SELECT n FROM public_keys WHERE utente =?;";
+            PreparedStatement pstm = conn.prepareStatement(sendMail);
+            pstm.setString(1, email);
+
             ResultSet result = pstm.executeQuery();
 
             while (result.next()) {
                 BigDecimal decimalN = result.getBigDecimal("n");
                 n = decimalN.toBigInteger();
-                
+
                 return n;
             }
 
@@ -114,30 +111,37 @@ public class NavigationServlet extends HttpServlet {
     }
 
     private String getHtmlForInbox(String email, BigInteger privKey) {
-    	try{
-        	String getMailReceived = "SELECT * FROM mail WHERE receiver=? ORDER BY time DESC";
-        	PreparedStatement pstm = conn.prepareStatement(getMailReceived);
+        try {
+            String getMailReceived = "SELECT * FROM mail WHERE receiver=? ORDER BY time DESC";
+            PreparedStatement pstm = conn.prepareStatement(getMailReceived);
             pstm.setString(1, email);
-            
-            ResultSet result = pstm.executeQuery(); 
+
+            ResultSet result = pstm.executeQuery();
 
             StringBuilder output = new StringBuilder();
             output.append("<div>\r\n");
 
             while (result.next()) {
-            	
-            	RSA rsa = new RSA();
-            	String body = rsa.decrypt(
-	    			result.getString("body"),
-	    			privKey,
-	    			getN(email)
-            	);
-            	
+
+                RSA rsa = new RSA();
+
+                String body = rsa.decrypt(
+                        result.getString("body"),
+                        privKey,
+                        getN(email));
+
+                String sanitizedBody = body;
+                String sanitizedSender = result.getString("sender");
+                String sanitizedTime = result.getString("time");
+                String sanitizedSubject = result.getString("subject");
+                System.out.println("sanitized subject" + sanitizedSubject);
+
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-                output.append("FROM:&emsp;" + result.getString("sender") + "&emsp;&emsp;AT:&emsp;" + result.getString("time"));
+                output.append("FROM: " + sanitizedSender + "\t\tAT:"
+                        + sanitizedTime);
                 output.append("</span>");
-                output.append("<br><b>" + result.getString("subject") + "</b>\r\n");
-                output.append("<br>" + body);
+                output.append("<br><b>" + sanitizedSubject + "</b>\r\n");
+                output.append("<br>" + sanitizedBody);
                 output.append("</div>\r\n");
 
                 output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
@@ -145,7 +149,7 @@ public class NavigationServlet extends HttpServlet {
 
             output.append("</div>");
 
-            return output.toString();
+            return Sanitizer.getSanitizedHtml(output.toString());
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -156,17 +160,17 @@ public class NavigationServlet extends HttpServlet {
     private String getHtmlForSearchResults(String email, String searchParam) {
         try (Statement st = conn.createStatement()) {
 
-        	String searchForMail = "SELECT * FROM mail WHERE "
-        						   + "( receiver=? OR sender=? ) AND "
-        						   + "( subject LIKE ? OR receiver LIKE ?) "
-        						   + "ORDER BY time DESC";
-        	
-        	PreparedStatement pstm = conn.prepareStatement(searchForMail);
+            String searchForMail = "SELECT * FROM mail WHERE "
+                    + "( receiver=? OR sender=? ) AND "
+                    + "( subject LIKE ? OR receiver LIKE ?) "
+                    + "ORDER BY time DESC";
+
+            PreparedStatement pstm = conn.prepareStatement(searchForMail);
             pstm.setString(1, email);
             pstm.setString(2, email);
             pstm.setString(3, '%' + searchParam + '%');
             pstm.setString(4, '%' + searchParam + '%');
-            
+
             ResultSet result = pstm.executeQuery();
 
             StringBuilder output = new StringBuilder();
@@ -175,13 +179,14 @@ public class NavigationServlet extends HttpServlet {
             output.append("<div>Search results for: " + searchParam + "</div><br>");
 
             while (result.next()) {
-            	String mailType = "TO";
-            	
-            	if(result.getString("receiver") == email)
-            		mailType = "FROM";
-            	
+                String mailType = "TO";
+
+                if (result.getString("receiver") == email)
+                    mailType = "FROM";
+
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-                output.append(mailType + ":&emsp;" + result.getString("receiver") + "&emsp;&emsp;AT:&emsp;" + result.getString("time"));
+                output.append(mailType + ":\t" + result.getString("receiver") + "\t\tAT:\t"
+                        + result.getString("time"));
                 output.append("</span>");
                 output.append("<br><b>" + result.getString("subject") + "</b>\r\n");
                 output.append("<br>" + result.getString("body"));
@@ -192,7 +197,7 @@ public class NavigationServlet extends HttpServlet {
 
             output.append("</div>");
 
-            return output.toString();
+            return Sanitizer.getSanitizedHtml(output.toString());
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -201,7 +206,7 @@ public class NavigationServlet extends HttpServlet {
     }
 
     private String getHtmlForNewMail(String email, String pwd) {
-        return "<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
+        String unsafeHtml = "<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
                 + "		<input type=\"hidden\" name=\"email\" value=\"" + email + "\">\r\n"
                 + "		<input type=\"hidden\" name=\"password\" value=\"" + pwd + "\">\r\n"
                 + "		<input class=\"single-row-input\" type=\"email\" name=\"receiver\" placeholder=\"Receiver\" required>\r\n"
@@ -209,25 +214,31 @@ public class NavigationServlet extends HttpServlet {
                 + "		<textarea class=\"textarea-input\" name=\"body\" placeholder=\"Body\" wrap=\"hard\" required></textarea>\r\n"
                 + "		<input type=\"submit\" name=\"sent\" value=\"Send\">\r\n"
                 + "	</form>";
+        return Sanitizer.getSanitizedHtml(unsafeHtml);
     }
 
     private String getHtmlForSent(String email) {
-        try{
-        	String getMailSent = "SELECT * FROM mail WHERE sender=? ORDER BY time DESC";
-        	PreparedStatement pstm = conn.prepareStatement(getMailSent);
+        try {
+            String getMailSent = "SELECT * FROM mail WHERE sender=? ORDER BY time DESC";
+            PreparedStatement pstm = conn.prepareStatement(getMailSent);
             pstm.setString(1, email);
-            
-            ResultSet result = pstm.executeQuery(); 
+
+            ResultSet result = pstm.executeQuery();
 
             StringBuilder output = new StringBuilder();
             output.append("<div>\r\n");
 
             while (result.next()) {
+                String receiver = result.getString("receiver");
+                String time = result.getString("time");
+                String subject = result.getString("subject");
+                String body = result.getString("body");
+
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
-                output.append("TO:&emsp;" + result.getString("receiver") + "&emsp;&emsp;AT:&emsp;" + result.getString("time"));
+                output.append("TO: " + receiver + "  AT:\t" + time);
                 output.append("</span>");
-                output.append("<br><b>" + result.getString("subject") + "</b>\r\n");
-                output.append("<br>" + result.getString("body"));
+                output.append("<br><b>" + subject + "</b>\r\n");
+                output.append("<br>" + body);
                 output.append("</div>\r\n");
 
                 output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
@@ -235,7 +246,7 @@ public class NavigationServlet extends HttpServlet {
 
             output.append("</div>");
 
-            return output.toString();
+            return Sanitizer.getSanitizedHtml(output.toString());
 
         } catch (SQLException e) {
             e.printStackTrace();

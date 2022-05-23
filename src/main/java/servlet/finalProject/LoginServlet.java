@@ -1,11 +1,12 @@
 package servlet.finalProject;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.Sanitizer;
+
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
@@ -43,33 +44,30 @@ public class LoginServlet extends HttpServlet {
 
             conn = DriverManager.getConnection(DB_URL, connectionProps);
 
-            //System.out.println("User \"" + USER + "\" connected to database.");
+            // System.out.println("User \"" + USER + "\" connected to database.");
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         response.setContentType("text/html");
 
-        String email = request.getParameter("email");
-        String pwd = request.getParameter("password");
-       
+        String email = Sanitizer.sanitizeJsInput(request.getParameter("email"));
+        String pwd = Sanitizer.sanitizeJsInput(request.getParameter("password"));
 
-        try{
-        	String getUserInfo = "SELECT password, email FROM users WHERE email=?";
-        	PreparedStatement pstm = conn.prepareStatement(getUserInfo);
+        try {
+            String getUserInfo = "SELECT password, email FROM users WHERE email=?";
+            PreparedStatement pstm = conn.prepareStatement(getUserInfo);
             pstm.setString(1, email);
-           
+
             ResultSet result = pstm.executeQuery();
- 
 
             if (result.next()) {
                 if (BCrypt.checkpw(pwd, result.getString("password"))) {
                     System.out.println("Login succeeded!");
-                    
-                    request.setAttribute("content", "");
                     request.setAttribute("email", result.getString("email"));
                     request.getRequestDispatcher("home.jsp").forward(request, response);
 
