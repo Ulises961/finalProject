@@ -37,6 +37,6 @@
         <servlet-name>CsrfServlet</servlet-name>
         <url-pattern>/csrfguard</url-pattern>
     </servlet-mapping>
-   
+
 
 </web-app>
