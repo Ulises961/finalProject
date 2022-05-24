@@ -15,6 +15,7 @@ import java.util.Properties;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -51,7 +52,6 @@ public class NavigationServlet extends HttpServlet {
             connectionProps.put("password", PWD);
 
             conn = DriverManager.getConnection(DB_URL, connectionProps);
-         
 
             // System.out.println("User \"" + USER + "\" connected to database.");
 
@@ -66,11 +66,35 @@ public class NavigationServlet extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        String csrfCookie = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("csrfToken")) {
+                    csrfCookie = cookie.getValue();
+                }
+            }
+        }
+
+
+        // get the CSRF form field
+        String csrfField = request.getParameter("csrfToken");
+        System.out.println("passed token: " + csrfField + " token stored in cookie " + csrfCookie);
+        // validate CSRF
+        if (csrfCookie == null || csrfField == null || !csrfCookie.equals(csrfField)) {
+            try {
+                response.sendError(401);
+            } catch (IOException e) {
+                // ...
+            }
+            return;
+        }
+
         response.setContentType("text/html");
 
         String searchParam = Sanitizer.sanitizeJsInput(request.getParameter("searchParam"));
         String email = Sanitizer.sanitizeJsInput(request.getParameter("email"));
-        String pwd = Sanitizer.sanitizeJsInput(request.getParameter("password"));
+
         String privKeyString = request.getParameter("privKey").replaceAll("[^0-9]", "");
 
         if (privKeyString == "")
@@ -79,7 +103,7 @@ public class NavigationServlet extends HttpServlet {
         BigInteger privKey = new BigInteger(privKeyString);
 
         if (request.getParameter("newMail") != null)
-            request.setAttribute("content", getHtmlForNewMail(email, pwd));
+            request.setAttribute("content", getHtmlForNewMail(email));
         else if (request.getParameter("inbox") != null)
             request.setAttribute("content", getHtmlForInbox(email, privKey));
         else if (request.getParameter("sent") != null)
@@ -130,7 +154,7 @@ public class NavigationServlet extends HttpServlet {
 
             final String LDT_PATTERN = "dd.MM.YYYY - HH:mm";
             final DateTimeFormatter LDT_FORMATTER = DateTimeFormatter.ofPattern(LDT_PATTERN);
-            
+
             while (result.next()) {
 
                 RSA rsa = new RSA();
@@ -139,7 +163,6 @@ public class NavigationServlet extends HttpServlet {
                         result.getString("body"),
                         privKey,
                         getN(email));
-
 
                 String sender = result.getString("sender");
                 Timestamp time = result.getTimestamp("time");
@@ -215,10 +238,9 @@ public class NavigationServlet extends HttpServlet {
         }
     }
 
-    private String getHtmlForNewMail(String email, String pwd) {
+    private String getHtmlForNewMail(String email) {
         String unsafeHtml = "<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
                 + "		<input type=\"hidden\" name=\"email\" value=\"" + email + "\">\r\n"
-                + "		<input type=\"hidden\" name=\"password\" value=\"" + pwd + "\">\r\n"
                 + "		<input class=\"single-row-input\" type=\"email\" name=\"receiver\" placeholder=\"Receiver\" required>\r\n"
                 + "		<input class=\"single-row-input\" type=\"text\"  name=\"subject\" placeholder=\"Subject\" required>\r\n"
                 + "		<textarea class=\"textarea-input\" name=\"body\" placeholder=\"Body\" wrap=\"hard\" required></textarea>\r\n"

@@ -16,6 +16,7 @@ import java.util.Properties;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -62,6 +63,28 @@ public class SendMailServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String csrfCookie = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("csrfToken")) {
+                    csrfCookie = cookie.getValue();
+                }
+            }
+        }
+
+
+        // get the CSRF form field
+        String csrfField = request.getParameter("csrfToken");
+        System.out.println("passed token: " + csrfField + " token stored in cookie " + csrfCookie);
+        // validate CSRF
+        if (csrfCookie == null || csrfField == null || !csrfCookie.equals(csrfField)) {
+            try {
+                response.sendError(401);
+            } catch (IOException e) {
+                // ...
+            }
+            return;
+        }
         response.setContentType("text/html");
 
         final String LDT_PATTERN = "HH:mm:ss";

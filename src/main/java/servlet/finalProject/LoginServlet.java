@@ -2,12 +2,12 @@ package servlet.finalProject;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import utils.Sanitizer;
-
 import org.mindrot.jbcrypt.BCrypt;
+import utils.Sanitizer;
 
 import java.io.IOException;
 import java.sql.*;
@@ -53,10 +53,37 @@ public class LoginServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html");
+        try {
+            String csrfCookie = null;
 
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if (cookie.getName().equals("csrfToken")) {
+                        csrfCookie = cookie.getValue();
+                    }
+                }
+            }
+
+            // get the CSRF form field
+            String csrfField = request.getParameter("csrfToken");
+            System.out.println("passed token: " + csrfField + " token stored in cookie " + csrfCookie);
+            // validate CSRF
+            if (csrfCookie == null || csrfField == null || !csrfCookie.equals(csrfField)) {
+
+                response.sendError(401);
+                return;
+            }
+        } catch (IOException e) {
+            // ...
+        }
+        response.setContentType("text/html");
+        System.out.println("login mail before sanification:" + request.getParameter("email"));
+        System.out.println("login password before sanification:" + request.getParameter("password"));
         String email = Sanitizer.sanitizeJsInput(request.getParameter("email"));
         String pwd = Sanitizer.sanitizeJsInput(request.getParameter("password"));
+
+        System.out.println("login mail after sanification:" + email);
+        System.out.println("login password after sanification:" + pwd);
 
         try {
             String getUserInfo = "SELECT password, email FROM users WHERE email=?";
@@ -86,4 +113,5 @@ public class LoginServlet extends HttpServlet {
             request.getRequestDispatcher("login.html").forward(request, response);
         }
     }
+
 }
