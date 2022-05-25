@@ -1,26 +1,20 @@
 package servlet.finalProject;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.time.format.DateTimeFormatter;
-import java.util.Properties;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.CSRF;
 import utils.RSA;
 import utils.Sanitizer;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.*;
+import java.time.format.DateTimeFormatter;
+import java.util.Properties;
 
 /**
  * Servlet implementation class NavigationServlet
@@ -62,57 +56,39 @@ public class NavigationServlet extends HttpServlet {
 
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-     *      response)
+     * response)
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String csrfCookie = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (cookie.getName().equals("csrfToken")) {
-                    csrfCookie = cookie.getValue();
-                }
-            }
+        Boolean isValidToken = CSRF.validateToken(request, response);
+        if (isValidToken) {
+            System.out.println(" navigation servlet is valid token");
+
+            response.setContentType("text/html");
+
+            String searchParam = Sanitizer.sanitizeJsInput(request.getParameter("searchParam"));
+            String email = Sanitizer.sanitizeJsInput(request.getParameter("email"));
+
+            String privKeyString = request.getParameter("privKey").replaceAll("[^0-9]", "");
+
+            if (privKeyString == "")
+                privKeyString = "0";
+
+            BigInteger privKey = new BigInteger(privKeyString);
+
+            if (request.getParameter("newMail") != null)
+                request.setAttribute("content", getHtmlForNewMail(email));
+            else if (request.getParameter("inbox") != null)
+                request.setAttribute("content", getHtmlForInbox(email, privKey));
+            else if (request.getParameter("sent") != null)
+                request.setAttribute("content", getHtmlForSent(email));
+            else if (request.getParameter("search") != null)
+                request.setAttribute("content", getHtmlForSearchResults(email, searchParam));
+
+            request.setAttribute("email", email);
+            request.getRequestDispatcher("home.jsp").forward(request, response);
         }
-
-
-        // get the CSRF form field
-        String csrfField = request.getParameter("csrfToken");
-        System.out.println("passed token: " + csrfField + " token stored in cookie " + csrfCookie);
-        // validate CSRF
-        if (csrfCookie == null || csrfField == null || !csrfCookie.equals(csrfField)) {
-            try {
-                response.sendError(401);
-            } catch (IOException e) {
-                // ...
-            }
-            return;
-        }
-
-        response.setContentType("text/html");
-
-        String searchParam = Sanitizer.sanitizeJsInput(request.getParameter("searchParam"));
-        String email = Sanitizer.sanitizeJsInput(request.getParameter("email"));
-
-        String privKeyString = request.getParameter("privKey").replaceAll("[^0-9]", "");
-
-        if (privKeyString == "")
-            privKeyString = "0";
-
-        BigInteger privKey = new BigInteger(privKeyString);
-
-        if (request.getParameter("newMail") != null)
-            request.setAttribute("content", getHtmlForNewMail(email));
-        else if (request.getParameter("inbox") != null)
-            request.setAttribute("content", getHtmlForInbox(email, privKey));
-        else if (request.getParameter("sent") != null)
-            request.setAttribute("content", getHtmlForSent(email));
-        else if (request.getParameter("search") != null)
-            request.setAttribute("content", getHtmlForSearchResults(email, searchParam));
-
-        request.setAttribute("email", email);
-        request.getRequestDispatcher("home.jsp").forward(request, response);
     }
 
     protected BigInteger getN(String email) {

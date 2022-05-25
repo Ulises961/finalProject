@@ -1,27 +1,21 @@
 package servlet.finalProject;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Properties;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.CSRF;
 import utils.RSA;
 import utils.Sanitizer;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Properties;
 
 /**
  * Servlet implementation class SendMailServlet
@@ -63,65 +57,48 @@ public class SendMailServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String csrfCookie = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (cookie.getName().equals("csrfToken")) {
-                    csrfCookie = cookie.getValue();
-                }
-            }
-        }
+        Boolean isValidToken = CSRF.validateToken(request, response);
+        if (isValidToken) {
+            System.out.println(" Send mail servlet is valid token");
 
+            response.setContentType("text/html");
 
-        // get the CSRF form field
-        String csrfField = request.getParameter("csrfToken");
-        System.out.println("passed token: " + csrfField + " token stored in cookie " + csrfCookie);
-        // validate CSRF
-        if (csrfCookie == null || csrfField == null || !csrfCookie.equals(csrfField)) {
+            final String LDT_PATTERN = "HH:mm:ss";
+            final DateTimeFormatter LDT_FORMATTER = DateTimeFormatter.ofPattern(LDT_PATTERN);
+
+            String sanitizedSender = Sanitizer.sanitizeJsInput(request.getParameter("email"));
+            String sanitizedReceiver = Sanitizer.sanitizeJsInput(request.getParameter("receiver"));
+            String sanitizedSubject = Sanitizer.sanitizeJsInput(request.getParameter("subject"));
+            String sanitizedBody = Sanitizer.sanitizeJsInput(request.getParameter("body"));
+            Timestamp time = Timestamp.valueOf(LocalDateTime.now());
+
+            String encryptedBody = encryptMailBody(sanitizedBody, sanitizedReceiver);
+
             try {
-                response.sendError(401);
-            } catch (IOException e) {
-                // ...
-            }
-            return;
-        }
-        response.setContentType("text/html");
+                String sendMail = "INSERT INTO mail ( sender, receiver, subject, body, time ) VALUES (?, ?, ?, ?, ?);";
+                PreparedStatement pstm = conn.prepareStatement(sendMail);
+                pstm.setString(1, sanitizedSender);
+                pstm.setString(2, sanitizedReceiver);
+                pstm.setString(3, sanitizedSubject);
+                pstm.setString(4, encryptedBody);
+                // pstm.setTimestamp(5, time);
+                pstm.setString(5, LDT_FORMATTER.format(time.toLocalDateTime()));
 
-        final String LDT_PATTERN = "HH:mm:ss";
-        final DateTimeFormatter LDT_FORMATTER = DateTimeFormatter.ofPattern(LDT_PATTERN);
+                int numUpdates = pstm.executeUpdate();
 
-        String sanitizedSender = Sanitizer.sanitizeJsInput(request.getParameter("email"));
-        String sanitizedReceiver = Sanitizer.sanitizeJsInput(request.getParameter("receiver"));
-        String sanitizedSubject = Sanitizer.sanitizeJsInput(request.getParameter("subject"));
-        String sanitizedBody = Sanitizer.sanitizeJsInput(request.getParameter("body"));
-        Timestamp time = Timestamp.valueOf(LocalDateTime.now());
+                if (numUpdates == 1)
+                    System.out.println("Email succesfully sent!");
+                else
+                    System.out.println("Could not send email!");
 
-        String encryptedBody = encryptMailBody(sanitizedBody, sanitizedReceiver);
-
-        try {
-            String sendMail = "INSERT INTO mail ( sender, receiver, subject, body, time ) VALUES (?, ?, ?, ?, ?);";
-            PreparedStatement pstm = conn.prepareStatement(sendMail);
-            pstm.setString(1, sanitizedSender);
-            pstm.setString(2, sanitizedReceiver);
-            pstm.setString(3, sanitizedSubject);
-            pstm.setString(4, encryptedBody);
-            // pstm.setTimestamp(5, time);
-            pstm.setString(5, LDT_FORMATTER.format(time.toLocalDateTime()));
-
-            int numUpdates = pstm.executeUpdate();
-
-            if (numUpdates == 1)
-                System.out.println("Email succesfully sent!");
-            else
+            } catch (SQLException e) {
                 System.out.println("Could not send email!");
+                e.printStackTrace();
+            }
 
-        } catch (SQLException e) {
-            System.out.println("Could not send email!");
-            e.printStackTrace();
+            request.setAttribute("email", sanitizedSender);
+            request.getRequestDispatcher("home.jsp").forward(request, response);
         }
-
-        request.setAttribute("email", sanitizedSender);
-        request.getRequestDispatcher("home.jsp").forward(request, response);
     }
 
     //
