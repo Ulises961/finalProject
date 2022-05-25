@@ -1,12 +1,13 @@
 package servlet.finalProject;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.mindrot.jbcrypt.BCrypt;
+import utils.CSRF;
+import utils.Sanitizer;
 
 import java.io.IOException;
 import java.sql.*;
@@ -43,54 +44,56 @@ public class LoginServlet extends HttpServlet {
 
             conn = DriverManager.getConnection(DB_URL, connectionProps);
 
-            //System.out.println("User \"" + USER + "\" connected to database.");
+            // System.out.println("User \"" + USER + "\" connected to database.");
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("text/html");
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-        String email = request.getParameter("email");
-        String pwd = request.getParameter("password");
+        Boolean isValidToken = CSRF.validateToken(request, response, "csrfToken");
+        if (isValidToken) {
+            System.out.println("Login servlet is valid token");
+            response.setContentType("text/html");
+            System.out.println("login mail before sanification:" + request.getParameter("email"));
+            System.out.println("login password before sanification:" + request.getParameter("password"));
+            String email = Sanitizer.sanitizeJsInput(request.getParameter("email"));
+            String pwd = Sanitizer.sanitizeJsInput(request.getParameter("password"));
 
-        System.out.println("The email is: " + "SELECT * "
-                + "FROM users "
-                + "WHERE email='" + email + "' ");
+            System.out.println("login mail after sanification:" + email);
+            System.out.println("login password after sanification:" + pwd);
 
-        try (Statement st = conn.createStatement()) {
-            ResultSet sqlRes = st.executeQuery(
-                    "SELECT * "
-                            + "FROM users "
-                            + "WHERE email='" + email + "' "
-            );
+            try {
+                String getUserInfo = "SELECT password, email FROM users WHERE email=?";
+                PreparedStatement pstm = conn.prepareStatement(getUserInfo);
+                pstm.setString(1, email);
 
-            if (sqlRes.next()) {
+                ResultSet result = pstm.executeQuery();
 
-                if (BCrypt.checkpw(pwd, sqlRes.getString(4))) {
-                    request.setAttribute("email", sqlRes.getString(3));
-                    request.setAttribute("password", sqlRes.getString(4));
+                if (result.next()) {
+                    if (BCrypt.checkpw(pwd, result.getString("password"))) {
+                        System.out.println("Login succeeded!");
+                        request.setAttribute("email", result.getString("email"));
+                        request.getRequestDispatcher("home.jsp").forward(request, response);
 
-                    System.out.println("Login succeeded!");
-                    request.setAttribute("content", "");
-                    request.getRequestDispatcher("home.jsp").forward(request, response);
+                    } else {
+                        System.out.println("Login failed!");
+                        request.getRequestDispatcher("login.html").forward(request, response);
+                    }
 
                 } else {
                     System.out.println("Login failed!");
                     request.getRequestDispatcher("login.html").forward(request, response);
                 }
 
-
-            } else {
-                System.out.println("Login failed!");
+            } catch (SQLException e) {
+                e.printStackTrace();
                 request.getRequestDispatcher("login.html").forward(request, response);
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            request.getRequestDispatcher("login.html").forward(request, response);
         }
     }
+
 }

@@ -21,27 +21,35 @@ public class RSAKeys implements RSAKey {
         return e;
     }
 
+    public void setN(BigInteger n) {
+        this.n = n;
+    }
+
+    public void setD(BigInteger d) {
+        this.d = d;
+    }
+
     public void setE(BigInteger e) {
         this.e = e;
     }
 
     @Override
     public boolean equals(Object obj) {
-        // TODO Auto-generated method stub
-
         return super.equals(obj);
     }
 
     @Override
     public String toString() {
-        // TODO Auto-generated method stub
         return super.toString();
     }
 
     @Override
     public BigInteger getModulus() {
-        // TODO Auto-generated method stub
         return null;
+    }
+
+    public BigInteger getN() {
+        return n;
     }
 
 }
