@@ -59,7 +59,7 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        Boolean isValidToken = CSRF.validateToken(request, response);
+        Boolean isValidToken = CSRF.validateToken(request, response, "csrfToken");
         if (isValidToken) {
             System.out.println(" Register servlet is valid token");
 

@@ -1,20 +1,25 @@
 package servlet.finalProject;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
+import java.util.Properties;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import utils.CSRF;
-import utils.RSA;
+import utils.Encryption;
 import utils.Sanitizer;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.*;
-import java.time.format.DateTimeFormatter;
-import java.util.Properties;
 
 /**
  * Servlet implementation class NavigationServlet
@@ -56,12 +61,12 @@ public class NavigationServlet extends HttpServlet {
 
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-     * response)
+     *      response)
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        Boolean isValidToken = CSRF.validateToken(request, response);
+        Boolean isValidToken = CSRF.validateToken(request, response, "csrfToken");
         if (isValidToken) {
             System.out.println(" navigation servlet is valid token");
 
@@ -78,7 +83,7 @@ public class NavigationServlet extends HttpServlet {
             BigInteger privKey = new BigInteger(privKeyString);
 
             if (request.getParameter("newMail") != null)
-                request.setAttribute("content", getHtmlForNewMail(email));
+                request.setAttribute("content", getHtmlForNewMail(email, response));
             else if (request.getParameter("inbox") != null)
                 request.setAttribute("content", getHtmlForInbox(email, privKey));
             else if (request.getParameter("sent") != null)
@@ -91,33 +96,7 @@ public class NavigationServlet extends HttpServlet {
         }
     }
 
-    protected BigInteger getN(String email) {
-        BigInteger n = new BigInteger("0");
-
-        try {
-            String sendMail = "SELECT n FROM public_keys WHERE utente =?;";
-            PreparedStatement pstm = conn.prepareStatement(sendMail);
-            pstm.setString(1, email);
-
-            ResultSet result = pstm.executeQuery();
-
-            while (result.next()) {
-                BigDecimal decimalN = result.getBigDecimal("n");
-                n = decimalN.toBigInteger();
-
-                return n;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("An error occurred while getting n.");
-
-        return n;
-    }
-
-    private String getHtmlForInbox(String email, BigInteger privKey) {
+    private String getHtmlForInbox(String email, BigInteger receiver_privKey) {
         try {
             String getMailReceived = "SELECT * FROM mail WHERE receiver=? ORDER BY time DESC";
             PreparedStatement pstm = conn.prepareStatement(getMailReceived);
@@ -132,25 +111,35 @@ public class NavigationServlet extends HttpServlet {
             final DateTimeFormatter LDT_FORMATTER = DateTimeFormatter.ofPattern(LDT_PATTERN);
 
             while (result.next()) {
-
-                RSA rsa = new RSA();
-
-                String body = rsa.decrypt(
-                        result.getString("body"),
-                        privKey,
-                        getN(email));
-
                 String sender = result.getString("sender");
                 Timestamp time = result.getTimestamp("time");
                 String subject = result.getString("subject");
-                System.out.println("sanitized subject" + subject);
+                String digest = result.getString("digest");
+                String body = result.getString("body");
+                int flag = 0;
+
+                if (digest != null)
+                    flag = checkDigitalSignature(sender, digest, body);
+
+                BigInteger receiver_n = Encryption.getKeys(email, conn)[1];
+                String decryptedBody = Encryption.decryptMessage(
+                        body,
+                        receiver_privKey,
+                        receiver_n);
 
                 output.append("<div style=\"white-space: pre-wrap;\"><span style=\"color:grey;\">");
                 output.append("FROM: " + sender + "\t\tAT:"
                         + LDT_FORMATTER.format(time.toLocalDateTime()));
                 output.append("</span>");
                 output.append("<br><b>" + subject + "</b>\r\n");
-                output.append("<br>" + body);
+                output.append("<br>" + decryptedBody);
+
+                if (flag == 1)
+                    output.append("<br> This mail has been digitally signed, and the data it contains is authentic.");
+                else if (flag == -1)
+                    output.append(
+                            "<br> We cannot guarantee the integrity and/or authenticty of the data. Please ask to resend the mail.");
+
                 output.append("</div>\r\n");
 
                 output.append("<hr style=\"border-top: 2px solid black;\">\r\n");
@@ -214,14 +203,26 @@ public class NavigationServlet extends HttpServlet {
         }
     }
 
-    private String getHtmlForNewMail(String email) {
+    private String getHtmlForNewMail(String email, HttpServletResponse response) {
+        String csrfSendMail = "";
+        try {
+            csrfSendMail = CSRF.getToken();
+            jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("csrfSendMail", csrfSendMail);
+            response.addCookie(cookie);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         String unsafeHtml = "<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
+                + "     <input type=\"hidden\" name=\"csrfSendMail\" value=\"" + csrfSendMail +"\"/>"
                 + "		<input type=\"hidden\" name=\"email\" value=\"" + email + "\">\r\n"
                 + "		<input class=\"single-row-input\" type=\"email\" name=\"receiver\" placeholder=\"Receiver\" required>\r\n"
                 + "		<input class=\"single-row-input\" type=\"text\"  name=\"subject\" placeholder=\"Subject\" required>\r\n"
                 + "		<textarea class=\"textarea-input\" name=\"body\" placeholder=\"Body\" wrap=\"hard\" required></textarea>\r\n"
+                + "		<input class=\"single-row-input\" typeo=\"text\" name=\"privKey\" placeholder=\"private key\" required>\r\n"
                 + "		<input type=\"submit\" name=\"sent\" value=\"Send\">\r\n"
                 + "	</form>";
+
         return Sanitizer.getSanitizedHtml(unsafeHtml);
     }
 
@@ -261,4 +262,20 @@ public class NavigationServlet extends HttpServlet {
             return "ERROR IN FETCHING INBOX MAILS!";
         }
     }
+
+    // 1 retrieve sender's pub & n from public_keys table
+    // 2 decrypt digest from stored in mail using the pub and n
+    // 3 return decrypted digest
+    // 4 generate own digest
+    // 5 compare them if ok decrypt body and return it
+    // 6 if not ok getHTML for error
+
+    public int checkDigitalSignature(String sender, String digest, String body) {
+        BigInteger[] keys = Encryption.getKeys(sender, conn);
+        String generatedDigest = Encryption.generateDigest(body);
+        String decryptedDigest = Encryption.decryptMessage(digest, keys[0], keys[1]);
+
+        return (generatedDigest.compareTo(decryptedDigest) == 0) ? 1 : -1;
+    }
+
 }

@@ -24,7 +24,7 @@ charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
             %>
             </p>
         </div>
-        <div id="right"><a href="login.html">Logout</a></div>
+        <div id="right"><a href="login.jsp">Logout</a></div>
     </div>
 </nav>
 
