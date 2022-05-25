@@ -69,7 +69,6 @@ public class LoginServlet extends HttpServlet {
 
 				request.setAttribute("email", sqlRes.getString(3));
 				request.setAttribute("password", sqlRes.getString(4));
-
 				System.out.println("Login succeeded!");
 				request.setAttribute("content", "");
 				request.getRequestDispatcher("home.jsp").forward(request, response);
