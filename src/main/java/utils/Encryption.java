@@ -50,7 +50,6 @@ public class Encryption {
             String sendMail = "SELECT pub,n  FROM public_keys WHERE utente =?;";
             PreparedStatement pstm = conn.prepareStatement(sendMail);
             pstm.setString(1, receiver);
-
             ResultSet result = pstm.executeQuery();
 
             while (result.next()) {
@@ -62,7 +61,6 @@ public class Encryption {
                 BigInteger n = decimalN.toBigInteger();
                 keys[1] = n;
 
-                System.out.println("I am returning the pub key");
                 return keys;
             }
 

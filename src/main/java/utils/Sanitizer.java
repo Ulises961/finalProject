@@ -27,25 +27,15 @@ public class Sanitizer {
                                 .allowAttributes("password", "value", "type").onElements("input")
                                 .allowAttributes("wrap").onElements("textarea")
                                 .allowAttributes("id", "action", "class", "method").onElements("form")
-                                .allowElements("textarea", "input", "form", "hr")
+                                .allowElements("textarea", "input", "form", "hr","a")
                                 .allowCommonBlockElements()
                                 .allowCommonInlineFormattingElements()
                                 .allowStyling()
                                 .allowStandardUrlProtocols()
                                 .allowStyling()
-                                .allowStandardUrlProtocols().allowElements("a")
-                                .allowAttributes("href").onElements("a").requireRelNofollowOnLinks()
                                 .allowStandardUrlProtocols()
-                                .allowElements(
-                                                "table", "tr", "td", "th",
-                                                "colgroup", "caption", "col",
-                                                "thead", "tbody", "tfoot")
-                                .allowAttributes("summary").onElements("table")
-                                .allowAttributes("align", "valign")
-                                .onElements("table", "tr", "td", "th",
-                                                "colgroup", "col",
-                                                "thead", "tbody", "tfoot")
-                                .allowTextIn("table")
+                                .allowAttributes("href").onElements("a")
+                                .allowStandardUrlProtocols()
                                 .toFactory();
 
                 String safeOutput = sanitizer.sanitize(unsafeHtml);

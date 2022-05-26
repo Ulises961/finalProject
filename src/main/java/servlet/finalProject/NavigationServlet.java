@@ -1,17 +1,5 @@
 package servlet.finalProject;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.time.format.DateTimeFormatter;
-import java.util.Properties;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,6 +8,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import utils.CSRF;
 import utils.Encryption;
 import utils.Sanitizer;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.sql.*;
+import java.time.format.DateTimeFormatter;
+import java.util.Properties;
 
 /**
  * Servlet implementation class NavigationServlet
@@ -61,7 +55,7 @@ public class NavigationServlet extends HttpServlet {
 
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-     *      response)
+     * response)
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -214,12 +208,12 @@ public class NavigationServlet extends HttpServlet {
         }
 
         String unsafeHtml = "<form id=\"submitForm\" class=\"form-resize\" action=\"SendMailServlet\" method=\"post\">\r\n"
-                + "     <input type=\"hidden\" name=\"csrfSendMail\" value=\"" + csrfSendMail +"\"/>"
+                + "     <input type=\"hidden\" name=\"csrfSendMail\" value=\"" + csrfSendMail + "\"/>"
                 + "		<input type=\"hidden\" name=\"email\" value=\"" + email + "\">\r\n"
                 + "		<input class=\"single-row-input\" type=\"email\" name=\"receiver\" placeholder=\"Receiver\" required>\r\n"
                 + "		<input class=\"single-row-input\" type=\"text\"  name=\"subject\" placeholder=\"Subject\" required>\r\n"
                 + "		<textarea class=\"textarea-input\" name=\"body\" placeholder=\"Body\" wrap=\"hard\" required></textarea>\r\n"
-                + "		<input class=\"single-row-input\" typeo=\"text\" name=\"privKey\" placeholder=\"private key\" required>\r\n"
+                + "		<input class=\"single-row-input\" typeo=\"text\" name=\"privKey\" placeholder=\"private key\">\r\n"
                 + "		<input type=\"submit\" name=\"sent\" value=\"Send\">\r\n"
                 + "	</form>";
 

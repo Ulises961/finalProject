@@ -5,41 +5,6 @@ import java.util.Random;
 
 public class RSA {
 
-    // public static void main(String[] args) {
-    // RSA rsa_A = new RSA();
-    // // RSA rsa_B = new RSA();
-
-    // // RSAKeys keys_A = rsa_A.generateKeys();
-    // // RSAKeys keys_B = rsa_B.generateKeys();
-
-    // // System.out.println("\nA => e=" + keys_A.getE() + " d=" + keys_A.getD());
-    // // System.out.println("B => e=" + keys_B.getE() + " d=" + keys_B.getD());
-
-    // BigInteger[] encryptedMessage1 = rsa_A.encrypt("security", new
-    // BigInteger("3"), new BigInteger("103027"));
-
-    // BigInteger[] encryptedMessage2 = rsa_A.encrypt("security", new
-    // BigInteger("3"), new BigInteger("2463"));
-
-    // String stringMessage1 = "" + encryptedMessage1[0];
-
-    // for (int i = 1; i < encryptedMessage1.length; i++)
-    // stringMessage1 += "," + encryptedMessage1[i];
-
-    // String stringMessage2 = "" + encryptedMessage2[0];
-
-    // for (int i = 1; i < encryptedMessage2.length; i++)
-    // stringMessage2 += "," + encryptedMessage2[i];
-
-    // System.out.println(rsa_A.decrypt(stringMessage1, new BigInteger("68251"), new
-    // BigInteger("103027")));
-    // System.out.println(rsa_A.decrypt(stringMessage1, new BigInteger("547"), new
-    // BigInteger("2463")));
-
-    // // System.out.println("encrypted message " +
-    // Arrays.toString(encryptedMessage));
-    // // System.out.println(rsa.decrypt(stringMessage, keys_A.d, keys_A.n));
-    // }
 
     private static int generateRandomPrime() {
         int num = 0;
@@ -68,8 +33,6 @@ public class RSA {
 
         // generate two random prime numbers p and q.
 
-        // int p = 17;// generateRandomPrime();
-        // int q = 23;// generateRandomPrime();
 
         int p = generateRandomPrime();
         int q = generateRandomPrime();
@@ -97,7 +60,7 @@ public class RSA {
 
         // Extended Euclidean Algorithm Tip:
 
-        int[] ps = { 0, 1 };
+        int[] ps = {0, 1};
         int quotient = 0;
         int dividend = phi;
         int divisor = e;
@@ -126,9 +89,7 @@ public class RSA {
 
         }
         int d = p0;
-        System.out.println("Public key 'e' = " + e);
-        System.out.println("Private key 'd' = " + d);
-        System.out.println("'n= p*q' = " + n);
+
         BigInteger bigE = BigInteger.valueOf(e);
         BigInteger bigD = BigInteger.valueOf(d);
         BigInteger bigN = BigInteger.valueOf(n);
@@ -201,16 +162,10 @@ public class RSA {
             BigInteger encryptedChar = ciphertext[j];
             BigInteger bigPow = encryptedChar.pow(d.intValue());
             BigInteger bigMod = bigPow.mod(n);
-
-            // System.out.printf("positionInAlphabet %d \n", bigMod.intValue());
-
             sb.append(Character.toString(bigMod.intValue()));
 
         }
-        // for each number in the ciphertext compute ( pow(number, d) ) mod n
 
-        // each resulting number is converted into a character assuming that this number
-        // is the position of the character in the alphabet
 
         return sb.toString();
     }
