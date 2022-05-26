@@ -27,6 +27,6 @@
     <input name="inbox" type="hidden"/>
     <input type="submit" value="Login"/>
 </form>
-<p>Or <a href="register.html">register</a></p>
+<p>Or <a href="register.jsp">register</a></p>
 </body>
 </html>

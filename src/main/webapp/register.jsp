@@ -33,7 +33,7 @@
         </tr>
     </table>
     <input type="submit" value="Register"/>
-    <a href="./login.html">return to login</a>
+    <a href="./login.jsp">return to login</a>
 </form>
 </body>
 
