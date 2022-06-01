@@ -60,4 +60,4 @@ By using Eclipse you can...
 1. create Servlets: right click on project -> New -> Servlet
 	(note that Eclipse auto-generated servlets import the old 'javax' package still, replace it with 'jakarta' to work properly)
 2. create HTTP/JSP/CSS/JavaScript files: right click on project -> New -> HTTP/JSP/CSS/JavaScript file
-3. run your web application: right click on project -> Run As -> Run on Server -> Select the Apache Tomcat server -> Run -> Go to your browser on URL "http://localhost:8080/ExamProject/"
+3. run your web application: right click on project -> Run As -> Run on Server -> Select the Apache Tomcat server -> Run -> Go to your browser on URL "http://localhost:8080/JavaProjectName/"
