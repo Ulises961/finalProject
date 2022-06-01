@@ -53,6 +53,7 @@
 3. Import the extracted content as 'filesystem' into the java project 
 4. Right click on the project -> Build path -> Configure build path...
 5. Go to Libraries -> Click on classpath -> Add External Jars... -> Add the file "servlet-api.jar" from lib directory inside the Apache Tomcat folder
+6. Update Maven dependencies by Rigth click on the project -> maven -> update project. This opens a window where one can confirm the update of dependencies.
 
 --- You're ready now to build your Web Application using Java and Tomcat! ---
 

@@ -1,6 +1,0 @@
-INDEX VERSION 1.4+/home/bsultan/git/finalProject/.metadata/.plugins/org.eclipse.wst.jsdt.core/indexes
-1563134640.index
-3006422887.index
-11323069.index
-1656288710.index
-104111842.index
