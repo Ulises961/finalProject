@@ -9,7 +9,7 @@
     * Go to Database
     * New Database Connection
     * Search for 'PostgreSQL'
-    * Insert a username and password
+    * Insert the username and password of an existing postgres user
     * Click Finish
 4. Inside the 'Database Navigator' click on the 'Database'connection you created
     * Right-click on the database that you used to create your connection
